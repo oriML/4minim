@@ -1,0 +1,33 @@
+{
+  "name": "minim-ecommerce",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/bcrypt": "^6.0.0",
+    "@types/node": "^24.4.0",
+    "@types/react": "^19.1.13",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.13",
+    "bcrypt": "^6.0.0",
+    "framer-motion": "^12.23.12",
+    "googleapis": "^159.0.0",
+    "jose": "^6.1.0",
+    "lucide-react": "^0.544.0",
+    "next": "^15.5.3",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tailwindcss-rtl": "^0.9.0"
+  }
+}
