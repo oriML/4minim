@@ -8,6 +8,15 @@ export interface Product {
   imageURL: string; // ImageURL (string)
 }
 
+export interface User {
+  userId: string;
+  username: string;
+  email: string;
+  passwordHash: string;
+  role: 'admin' | 'user';
+  status: string;
+}
+
 export interface Customer {
   customerId: string; // CustomerID (string, unique, e.g. CUST001)
   fullName: string; // FullName (string)

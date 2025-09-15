@@ -10,7 +10,7 @@ export async function signToken(payload: { [key: string]: any }): Promise<string
     .setIssuedAt()
     .setIssuer(issuer)
     .setAudience(audience)
-    .setExpirationTime('2h')
+    .setExpirationTime('24h') // Hardcode to 24 hours
     .sign(secretKey);
 }
 

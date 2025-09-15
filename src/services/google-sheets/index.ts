@@ -1,10 +1,11 @@
 import { sheets } from './client';
-import type { Product, Order, Customer } from '@/core/types';
+import type { Product, Order, Customer, User } from '@/core/types';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const PRODUCTS_SHEET_NAME = 'Products';
 const ORDERS_SHEET_NAME = 'Orders';
 const CUSTOMERS_SHEET_NAME = 'Customers';
+const USERS_SHEET_NAME = 'Users';
 
 const getProducts = async (): Promise<Product[]> => {
     const response = await sheets.spreadsheets.values.get({
@@ -26,6 +27,27 @@ const getProducts = async (): Promise<Product[]> => {
       price: parseFloat(row[5]),
       imageURL: row[6],
     }));
+};
+
+const getUsers = async (): Promise<User[]> => {
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${USERS_SHEET_NAME}!A2:F`,
+  });
+
+  const values = response.data.values;
+  if (!values) {
+    return [];
+  }
+
+  return values.map((row) => ({
+    userId: row[0],
+    username: row[1],
+    email: row[2],
+    passwordHash: row[3],
+    role: row[4] as 'admin' | 'user',
+    status: row[5],
+  }));
 };
 
 const addProduct = async (product: Omit<Product, 'ID'>): Promise<Product> => {
@@ -248,4 +270,5 @@ export const googleSheetService = {
   getOrders,
   addOrder,
   updateOrder,
+  getUsers,
 };
