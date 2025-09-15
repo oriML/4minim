@@ -14,7 +14,7 @@ const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({ params })
         <div className="bg-gray-100 text-olive text-2xl font-mono p-4 rounded-md inline-block">
           {params.orderId}
         </div>
-        <p className="text-gray-500 mt-8">You will receive an email confirmation shortly.</p>
+        <p className="text-gray-500 mt-8">אישור הזמנה יישלח אליך בקרוב במייל.</p>
       </div>
     </div>
   );

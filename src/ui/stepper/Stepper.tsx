@@ -32,7 +32,7 @@ export const Stepper: React.FC<PremiumStepperProps> = ({ steps, currentStep, onS
       {/* --- Step Indicators --- */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-8 mb-12">
         {steps.map((step, index) => (
-          <StepNode key={step.id} index={index} currentStep={currentStep} onStepChange={onStepChange}>
+          <StepNode key={step.id} index={index} currentStep={currentStep} onStepChange={onStepChange} totalSteps={steps.length}>
             {step.name}
           </StepNode>
         ))}
@@ -52,7 +52,7 @@ export const Stepper: React.FC<PremiumStepperProps> = ({ steps, currentStep, onS
       </AnimatePresence>
 
       {/* --- Navigation --- */}
-      <div className="flex justify-between items-center mt-10">
+      <div className="flex justify-around items-center mt-10 px-4">
         <NavButton onClick={() => onStepChange(currentStep - 1)} disabled={currentStep === 0}>
           חזור
         </NavButton>
@@ -66,11 +66,11 @@ export const Stepper: React.FC<PremiumStepperProps> = ({ steps, currentStep, onS
 
 // --- SUB-COMPONENTS --- //
 
-const StepNode = ({ children, index, currentStep, onStepChange }: any) => {
+const StepNode = ({ children, index, currentStep, onStepChange, totalSteps }: any) => {
   const status = currentStep > index ? 'completed' : currentStep === index ? 'active' : 'upcoming';
 
   return (
-    <motion.div animate={status} className="flex flex-row-reverse md:flex-col items-center gap-4 cursor-pointer md:flex-1" onClick={() => onStepChange(index)}>
+    <motion.div animate={status} className="relative flex flex-row-reverse md:flex-col items-center gap-4 cursor-pointer md:flex-1" onClick={() => onStepChange(index)}>
       {/* Circle + Icon */}
       <motion.div
         variants={circleVariants}
@@ -95,11 +95,13 @@ const StepNode = ({ children, index, currentStep, onStepChange }: any) => {
       </div>
 
       {/* Connector Line (Desktop only) */}
-      <motion.div
-        variants={lineVariants}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="hidden md:block h-0.5 w-full absolute top-6 right-[calc(50%+2rem)]"
-      />
+      {index < totalSteps - 1 && (
+        <motion.div
+          variants={lineVariants}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="hidden md:block h-0.5 w-full absolute top-6 right-[calc(50%+2rem)]"
+        />
+      )}
     </motion.div>
   );
 };
@@ -131,6 +133,6 @@ const labelVariants = {
 
 const lineVariants = {
   upcoming: { backgroundColor: '#D1D5DB' },
-  active: { backgroundColor: '#708238' },
+  active: { backgroundColor: '#D1D5DB' },
   completed: { backgroundColor: '#708238' },
 };

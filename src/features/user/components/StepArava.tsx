@@ -20,7 +20,6 @@ export const StepArava: React.FC<StepProps> = ({ selected, onSelect }) => {
           <div key={arava.id} className="md:col-start-2">
             <ProductCard 
               {...arava} 
-              category="custom"
               isSelected={selected?.id === arava.id}
               onSelect={() => onSelect({ ...arava, category: 'custom' })}
             />

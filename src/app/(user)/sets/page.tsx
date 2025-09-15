@@ -33,7 +33,7 @@ export default function SetsPage() {
 
   return (
     <div className="container mx-auto">
-      <h1 className="text-4xl font-bold text-center mb-8 text-olive">Choose Your Perfect Set</h1>
+      <h1 className="text-4xl font-bold text-center mb-8 text-olive">בחר את הסט המושלם שלך</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {sets.map((set) => (
           <SetCard 

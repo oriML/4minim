@@ -18,7 +18,7 @@ export interface CustomSet {
 
 export const CustomSetBuilder = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [customSet, setCustomSet] = useState<CustomSet>({   לולב: null, אתרוג: null, הדס: null, arava: null });
+  const [customSet, setCustomSet] = useState<CustomSet>({   lulav: null, etrog: null, hadas: null, arava: null });
 
   const updateProductSelection = (category: keyof CustomSet, product: Product) => {
     setCustomSet(prev => ({
@@ -29,9 +29,9 @@ export const CustomSetBuilder = () => {
 
   const steps = [
     { id: 'step-lulav', name: 'לולב', component: <StepLulav selected={customSet.lulav} onSelect={(p) => updateProductSelection('lulav', p)} /> },
-    { id: 'step-etrog', name: 'אתרוג', component: <StepEtrog selected={customSet.אתרוג} onSelect={(p) => updateProductSelection('אתרוג', p)} /> },
+    { id: 'step-etrog', name: 'אתרוג', component: <StepEtrog selected={customSet.etrog} onSelect={(p) => updateProductSelection('etrog', p)} /> },
     { id: 'step-hadas', name: 'הדס', component: <StepHadas selected={customSet.hadas} onSelect={(p) => updateProductSelection('hadas', p)} /> },
-    { id: 'step-arava', name: 'ערבה', component: <StepArava selected={customSet.ערבה} onSelect={(p) => updateProductSelection('ערבה', p)} /> },
+    { id: 'step-arava', name: 'ערבה', component: <StepArava selected={customSet.arava} onSelect={(p) => updateProductSelection('arava', p)} /> },
     { id: 'step-summary', name: 'סיכום הזמנה', component: <StepSummary set={customSet} /> }
   ];
 

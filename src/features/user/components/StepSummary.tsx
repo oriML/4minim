@@ -50,28 +50,28 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
             {selectedProducts.map(product => (
               <li key={product.id} className="py-3 flex justify-between items-center">
                 <span className="text-gray-800">{product.name}</span>
-                <span className="font-semibold text-gray-600">${product.price.toFixed(2)}</span>
+                <span className="font-semibold text-gray-600">₪{product.price.toFixed(2)}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-center text-gray-500 mb-6">You haven't selected any items.</p>
+          <p className="text-center text-gray-500 mb-6">לא נבחרו מוצרים..</p>
         )}
         <div className="border-t border-gray-200 pt-4 flex justify-between items-center font-bold text-xl text-olive">
-          <span>Total</span>
-          <span>${total.toFixed(2)}</span>
+          <span>סה"כ</span>
+          <span>₪{total.toFixed(2)}</span>
         </div>
       </div>
 
       <form action={handleFormSubmit} className="mt-8">
-        <h4 className="text-xl font-semibold mb-4">Your Details</h4>
+        <h4 className="text-xl font-semibold mb-4">פרטי המזמין</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">שם מלא</label>
             <input type="text" name="name" id="name" required className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-olive focus:border-olive" />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">כתובת אימייל</label>
             <input type="email" name="email" id="email" required className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-olive focus:border-olive" />
           </div>
         </div>

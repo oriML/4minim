@@ -22,7 +22,6 @@ export const StepEtrog: React.FC<StepProps> = ({ selected, onSelect }) => {
           <ProductCard 
             key={etrog.id} 
             {...etrog} 
-            category="custom"
             isSelected={selected?.id === etrog.id}
             onSelect={() => onSelect({ ...etrog, category: 'custom' })}
           />

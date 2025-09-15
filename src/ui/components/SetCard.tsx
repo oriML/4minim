@@ -13,12 +13,12 @@ export const SetCard: React.FC<SetCardProps> = ({ name, description, price, onSe
       <h3 className="text-2xl font-bold text-olive mb-2">{name}</h3>
       <p className="text-gray-600 mb-4">{description}</p>
       <div className="flex justify-between items-center">
-        <span className="text-xl font-semibold text-gray-800">${price}</span>
+        <span className="text-xl font-semibold text-gray-800">₪{price}</span>
         <button 
           onClick={onSelect}
           className="bg-green-700 text-white font-bold py-2 px-4 rounded-full hover:bg-opacity-90 transition-colors"
         >
-          Select Set
+          בחר סט
         </button>
       </div>
     </div>

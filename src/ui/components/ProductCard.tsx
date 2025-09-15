@@ -22,11 +22,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ name, description, pri
       <h3 className="text-lg font-bold text-gray-800 mb-1">{name}</h3>
       <p className="text-gray-500 text-sm mb-2">{description}</p>
       <div className="flex justify-between items-center">
-        <span className="text-md font-semibold text-olive">${price}</span>
+        <span className="text-md font-semibold text-olive">₪{price}</span>
         <button 
           className={`py-2 px-4 rounded-full text-sm font-semibold transition-colors ${isSelected ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-700'}`}
         >
-          {isSelected ? 'Selected' : 'Select'}
+          {isSelected ? 'נבחר' : 'בחר'}
         </button>
       </div>
     </div>

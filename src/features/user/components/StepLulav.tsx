@@ -21,7 +21,6 @@ export const StepLulav: React.FC<StepProps> = ({ selected, onSelect }) => {
           <ProductCard 
             key={lulav.id} 
             {...lulav} 
-            category="custom"
             isSelected={selected?.id === lulav.id}
             onSelect={() => onSelect({ ...lulav, category: 'custom' })}
           />

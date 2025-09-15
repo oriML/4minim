@@ -11,7 +11,7 @@ export default function AdminLayout({
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold text-olive">ממשק ניהול</h1>
           <form action={logoutAction}>
-            <button type="submit" className="font-semibold text-gray-600 hover:text-olive transition-colors">Logout</button>
+            <button type="submit" className="font-semibold text-gray-600 hover:text-olive transition-colors">התנתק</button>
           </form>
         </div>
       </header>
