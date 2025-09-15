@@ -1,14 +1,15 @@
 import { sheets } from './client';
-import type { Product, Order } from '@/core/types';
+import type { Product, Order, Customer } from '@/core/types';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const PRODUCTS_SHEET_NAME = 'Products';
 const ORDERS_SHEET_NAME = 'Orders';
+const CUSTOMERS_SHEET_NAME = 'Customers';
 
 const getProducts = async (): Promise<Product[]> => {
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${PRODUCTS_SHEET_NAME}!A2:F`,
+    range: `${PRODUCTS_SHEET_NAME}!A2:G`,
   });
 
   const values = response.data.values;
@@ -18,31 +19,32 @@ const getProducts = async (): Promise<Product[]> => {
 
   return values.map((row) => ({
     id: row[0],
-    name: row[1],
-    description: row[2],
-    price: parseFloat(row[3]),
-    imageUrl: row[4],
-    category: row[5] as 'set' | 'custom',
+    category: row[1],
+    productName_EN: row[2],
+    productName_HE: row[3],
+    description: row[4],
+    price: parseFloat(row[5]),
+    imageURL: row[6],
   }));
 };
 
-const addProduct = async (product: Omit<Product, 'id'>): Promise<Product> => {
+const addProduct = async (product: Omit<Product, 'ID'>): Promise<Product> => {
   const newId = `PROD-${Date.now()}`;
   const newProduct: Product = { ...product, id: newId };
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${PRODUCTS_SHEET_NAME}!A:F`,
+    range: `${PRODUCTS_SHEET_NAME}!A:G`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[newProduct.id, newProduct.name, newProduct.description, newProduct.price, newProduct.imageUrl, newProduct.category]],
+      values: [[newProduct.id, newProduct.category, newProduct.productName_EN, newProduct.productName_HE, newProduct.description, newProduct.price, newProduct.imageURL]],
     },
   });
 
   return newProduct;
 };
 
-const updateProduct = async (id: string, updates: Partial<Omit<Product, 'id'>>): Promise<Product> => {
+const updateProduct = async (id: string, updates: Partial<Omit<Product, 'ID'>>): Promise<Product> => {
   const products = await getProducts();
   const productIndex = products.findIndex((p) => p.id === id);
   if (productIndex === -1) {
@@ -52,23 +54,23 @@ const updateProduct = async (id: string, updates: Partial<Omit<Product, 'id'>>):
   const productToUpdate = products[productIndex];
   const updatedProduct = { ...productToUpdate, ...updates };
 
-  const range = `${PRODUCTS_SHEET_NAME}!A${productIndex + 2}:F${productIndex + 2}`;
+  const range = `${PRODUCTS_SHEET_NAME}!A${productIndex + 2}:G${productIndex + 2}`;
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
     range,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[updatedProduct.id, updatedProduct.name, updatedProduct.description, updatedProduct.price, updatedProduct.imageUrl, updatedProduct.category]],
+      values: [[updatedProduct.id, updatedProduct.category, updatedProduct.productName_EN, updatedProduct.productName_HE, updatedProduct.description, updatedProduct.price, updatedProduct.imageURL]],
     },
   });
 
   return updatedProduct;
 };
 
-const deleteProduct = async (id: string): Promise<void> => {
+const deleteProduct = async (ID: string): Promise<void> => {
   const products = await getProducts();
-  const productIndex = products.findIndex((p) => p.id === id);
+  const productIndex = products.findIndex((p) => p.id === ID);
   if (productIndex === -1) {
     throw new Error('Product not found');
   }
@@ -97,23 +99,130 @@ const deleteProduct = async (id: string): Promise<void> => {
   });
 };
 
-const addOrder = async (order: Omit<Order, 'id' | 'timestamp'>): Promise<Order> => {
+const addOrder = async (order: Omit<Order, 'OrderID' | 'OrderDate' | 'Status'> & { Status?: 'Pending' | 'Completed' }): Promise<Order> => {
+  const newOrderId = `ORD-${Date.now()}`;
   const newOrder: Order = {
     ...order,
-    id: `ORDER-${Date.now()}`,
-    timestamp: new Date().toISOString(),
+    orderId: newOrderId,
+    orderDate: new Date().toISOString(),
+    status: order.Status || 'Pending', // Default to Pending if not provided
   };
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A:F`,
+    range: `${ORDERS_SHEET_NAME}!A:F`, // A:F for 6 columns
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[newOrder.id, newOrder.customerName, newOrder.customerEmail, JSON.stringify(newOrder.products), newOrder.total, newOrder.timestamp]],
+      values: [[newOrder.orderId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status]],
     },
   });
 
   return newOrder;
+};
+
+const getCustomers = async (): Promise<Customer[]> => {
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${CUSTOMERS_SHEET_NAME}!A2:E`,
+  });
+
+  const values = response.data.values;
+  if (!values) {
+    return [];
+  }
+
+  return values.map((row) => ({
+    customerId: row[0],
+    fullName: row[1],
+    phone: row[2],
+    email: row[3],
+    address: row[4],
+  }));
+};
+
+const addCustomer = async (customer: Omit<Customer, 'CustomerID'>): Promise<Customer> => {
+  const newCustomerId = `CUST-${Date.now()}`;
+  const newCustomer: Customer = { ...customer, customerId: newCustomerId };
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${CUSTOMERS_SHEET_NAME}!A:E`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values: [[newCustomer.customerId, newCustomer.fullName, newCustomer.phone, newCustomer.email, newCustomer.address]],
+    },
+  });
+
+  return newCustomer;
+};
+
+const updateCustomer = async (ID: string, updates: Partial<Omit<Customer, 'CustomerID'>>): Promise<Customer> => {
+  const customers = await getCustomers();
+  const customerIndex = customers.findIndex((c) => c.customerId === ID);
+  if (customerIndex === -1) {
+    throw new Error('Customer not found');
+  }
+
+  const customerToUpdate = customers[customerIndex];
+  const updatedCustomer = { ...customerToUpdate, ...updates };
+
+  const range = `${CUSTOMERS_SHEET_NAME}!A${customerIndex + 2}:E${customerIndex + 2}`;
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: SPREADSHEET_ID,
+    range,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values: [[updatedCustomer.customerId, updatedCustomer.fullName, updatedCustomer.phone, updatedCustomer.email, updatedCustomer.address]],
+    },
+  });
+
+  return updatedCustomer;
+};
+
+const getOrders = async (): Promise<Order[]> => {
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${ORDERS_SHEET_NAME}!A2:F`,
+  });
+
+  const values = response.data.values;
+  if (!values) {
+    return [];
+  }
+
+  return values.map((row) => ({
+    orderId: row[0],
+    customerId: row[1],
+    productsJSON: row[2],
+    totalPrice: parseFloat(row[3]),
+    orderDate: row[4],
+    status: row[5] as 'Pending' | 'Completed',
+  }));
+};
+
+const updateOrder = async (ID: string, updates: Partial<Omit<Order, 'OrderID'>>): Promise<Order> => {
+  const orders = await getOrders();
+  const orderIndex = orders.findIndex((o) => o.orderId === ID);
+  if (orderIndex === -1) {
+    throw new Error('Order not found');
+  }
+
+  const orderToUpdate = orders[orderIndex];
+  const updatedOrder = { ...orderToUpdate, ...updates };
+
+  const range = `${ORDERS_SHEET_NAME}!A${orderIndex + 2}:F${orderIndex + 2}`;
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: SPREADSHEET_ID,
+    range,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values: [[updatedOrder.orderId, updatedOrder.customerId, updatedOrder.productsJSON, updatedOrder.totalPrice, updatedOrder.orderDate, updatedOrder.status]],
+    },
+  });
+
+  return updatedOrder;
 };
 
 const getSheetId = async (sheetName: string): Promise<number | null> => {
@@ -133,5 +242,10 @@ export const googleSheetService = {
   addProduct,
   updateProduct,
   deleteProduct,
+  getCustomers,
+  addCustomer,
+  updateCustomer,
+  getOrders,
   addOrder,
+  updateOrder,
 };
