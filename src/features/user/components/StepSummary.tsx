@@ -34,7 +34,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
         products: selectedProducts, 
         total 
       });
-      router.push(`/order-confirmation/${newOrder.id}`);
+      router.push(`/order-confirmation/${newOrder.orderId}`);
     } catch (error) {
       console.error(error);
       alert('There was an error submitting your order. Please try again.');

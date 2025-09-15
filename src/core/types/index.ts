@@ -24,3 +24,35 @@ export interface Order {
   orderDate: string; // OrderDate (ISO string)
   status: 'Pending' | 'Completed'; // Status (string: Pending/Completed)
 }
+
+// The shape of the product data stored in the order's JSON field
+export type OrderProduct = {
+  qty: number;
+  size?: string;
+  color?: string;
+  [key: string]: any; // For other dynamic properties
+};
+
+// Raw Order data from the database
+export interface DBOrder {
+  orderId: string;
+  customerId: string;
+  products: Record<string, OrderProduct>; // JSON object with productId as key
+  createdAt: Date;
+}
+
+// Enriched product data for the UI
+export interface UIProduct extends OrderProduct {
+  productId: string;
+  name: string;
+  imageUrl: string;
+}
+
+// Final, UI-friendly order object for rendering
+export interface UIOrder {
+  orderId: string;
+  customerId: string;
+  customerName: string;
+  products: UIProduct[];
+  createdAt: Date;
+}

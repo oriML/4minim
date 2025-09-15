@@ -5,12 +5,12 @@ interface ProductCardProps {
   name: string;
   description: string;
   price: number;
-  imageUrl: string;
+  imageURL: string;
   isSelected: boolean;
   onSelect: () => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ name, description, price, imageUrl, isSelected, onSelect }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ name, description, price, imageURL: imageUrl, isSelected, onSelect }) => {
   return (
     <div 
       className={`border rounded-lg p-4 bg-white cursor-pointer transition-all ${isSelected ? 'border-olive shadow-2xl scale-105' : 'shadow-md hover:shadow-lg'}`}
