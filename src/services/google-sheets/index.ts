@@ -7,25 +7,25 @@ const ORDERS_SHEET_NAME = 'Orders';
 const CUSTOMERS_SHEET_NAME = 'Customers';
 
 const getProducts = async (): Promise<Product[]> => {
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${PRODUCTS_SHEET_NAME}!A2:G`,
-  });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${PRODUCTS_SHEET_NAME}!A2:H`,
+    });
+    
+    const values = response.data.values;
+    if (!values) {
+      return [];
+    }
 
-  const values = response.data.values;
-  if (!values) {
-    return [];
-  }
-
-  return values.map((row) => ({
-    id: row[0],
-    category: row[1],
-    productName_EN: row[2],
-    productName_HE: row[3],
-    description: row[4],
-    price: parseFloat(row[5]),
-    imageURL: row[6],
-  }));
+    return values.map((row) => ({
+      id: row[0],
+      category: row[1],
+      productName_EN: row[2],
+      productName_HE: row[3],
+      description: row[4],
+      price: parseFloat(row[5]),
+      imageURL: row[6],
+    }));
 };
 
 const addProduct = async (product: Omit<Product, 'ID'>): Promise<Product> => {
@@ -34,7 +34,7 @@ const addProduct = async (product: Omit<Product, 'ID'>): Promise<Product> => {
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${PRODUCTS_SHEET_NAME}!A:G`,
+    range: `${PRODUCTS_SHEET_NAME}!A:H`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [[newProduct.id, newProduct.category, newProduct.productName_EN, newProduct.productName_HE, newProduct.description, newProduct.price, newProduct.imageURL]],
