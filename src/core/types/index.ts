@@ -34,6 +34,13 @@ export interface CustomerInfo {
     notes?: string;
 }
 
+// Type for the shopping cart
+export interface Cart {
+  [productId: string]: {
+    qty: number;
+  };
+}
+
 export interface Order {
   orderId: string; // OrderID (string, unique, e.g. ORD001)
   customerId: string; // CustomerID (string, FK to Customers.CustomerID)
