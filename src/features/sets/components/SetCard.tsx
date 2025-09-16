@@ -37,7 +37,7 @@ export const SetCard: React.FC<SetCardProps> = ({ set }) => {
           <span className="text-2xl font-bold text-brand-dark">₪{set.price.toFixed(2)}</span>
           <button
             onClick={handleSelectSet} // Add onClick handler
-            className="px-4 py-2 rounded-lg bg-brand-leaf text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold"
+            className="px-4 py-2 cursor-pointer rounded-lg bg-green-800 text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold"
             aria-label={`בחר סט ${set.title}`} // Update aria-label
           >
             בחר
