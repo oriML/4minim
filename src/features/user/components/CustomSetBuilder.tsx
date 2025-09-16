@@ -20,10 +20,10 @@ interface CustomSetBuilderProps {
 
 // Configuration for the product steps
 const stepConfig: { category: keyof CustomSet; title: string; dbCategory: string; }[] = [
-  { category: 'lulav', title: '1. בחר לולב', dbCategory: 'lulav' },
-  { category: 'etrog', title: '2. בחר אתרוג', dbCategory: 'etrog' },
-  { category: 'hadas', title: '3. בחר הדס', dbCategory: 'hadas' },
-  { category: 'arava', title: '4. בחר ערבה', dbCategory: 'arava' },
+  { category: 'lulav', title: '1. בחר לולב', dbCategory: 'לולב' },
+  { category: 'etrog', title: '2. בחר אתרוג', dbCategory: 'אתרוג' },
+  { category: 'hadas', title: '3. בחר הדס', dbCategory: 'הדס' },
+  { category: 'arava', title: '4. בחר ערבה', dbCategory: 'ערבה' },
 ];
 
 export const CustomSetBuilder: React.FC<CustomSetBuilderProps> = ({ productsByCategory }) => {
@@ -40,7 +40,7 @@ export const CustomSetBuilder: React.FC<CustomSetBuilderProps> = ({ productsByCa
   // Dynamically generate the steps from the config
   const productSteps = stepConfig.map(config => ({
     id: `step-${config.category}`,
-    name: config.title.split('. ')[1], // e.g., "בחר לולב"
+    name: config.title.split('. ')[1],
     component: (
       <Step
         title={config.title}

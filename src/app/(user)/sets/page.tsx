@@ -6,18 +6,21 @@ import { useRouter } from 'next/navigation';
 const sets = [
   {
     name: 'סט ילדים',
-    description: 'A simple and easy-to-handle set, perfect for children.',
+    description: 'סט פשוט מותאם לילדים שאינם חייבים במצוות',
     price: 25,
+    imageUrl: 'https://res.cloudinary.com/dxoajioji/image/upload/v1758020403/android-chrome-192x192_de2rxy.png',
   },
   {
-    name: 'Kosher Set',
-    description: 'סט כשר ומהודר לשימוש יומיומי.',
+    name: 'סט כשר רגיל',
+    description: 'סט כשר לצאת בו ידי חובה.',
     price: 50,
+    imageUrl: 'https://res.cloudinary.com/dxoajioji/image/upload/v1758020403/Google_AI_Studio_2025-09-15T10_57_49.978Z_q8c6qm.png',
   },
   {
     name: 'סט מהודר',
-    description: 'סט יפהפה ואיכותי במיוחד לבעלי טעם.',
+    description: 'סט יפהפה, איכותי ומהודר במיוחד.',
     price: 100,
+    imageUrl: 'https://res.cloudinary.com/dxoajioji/image/upload/v1758020403/Google_AI_Studio_2025-09-15T10_57_49.978Z_q8c6qm.png',
   },
 ];
 

@@ -49,7 +49,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
           <ul className="divide-y divide-gray-200 mb-6">
             {selectedProducts.map(product => (
               <li key={product.id} className="py-3 flex justify-between items-center">
-                <span className="text-gray-800">{product.name}</span>
+                <span className="text-gray-800">{product.productName_HE}</span>
                 <span className="font-semibold text-gray-600">₪{product.price.toFixed(2)}</span>
               </li>
             ))}
