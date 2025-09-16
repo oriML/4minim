@@ -25,6 +25,15 @@ export interface Customer {
   address: string; // Address (string)
 }
 
+// This type represents the data collected from the customer form
+export interface CustomerInfo {
+    fullName: string;
+    phone: string;
+    email: string;
+    address: string;
+    notes?: string;
+}
+
 export interface Order {
   orderId: string; // OrderID (string, unique, e.g. ORD001)
   customerId: string; // CustomerID (string, FK to Customers.CustomerID)
@@ -32,6 +41,7 @@ export interface Order {
   totalPrice: number; // TotalPrice (number)
   orderDate: string; // OrderDate (ISO string)
   status: 'Pending' | 'Completed' | 'Canceled'; // Status (string: Pending/Completed)
+  notes?: string; // Optional notes for the order
 }
 
 // The shape of the product data stored in the order's JSON field

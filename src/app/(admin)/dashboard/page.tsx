@@ -21,7 +21,7 @@ async function AdminDashboardPage() {
 
   const uiOrders: UIOrder[] = orders.map((order: Order) => {
     const customer = customers.find((c: Customer) => c.customerId === order.customerId);
-    const parsedProducts: Record<string, OrderProduct> = JSON.parse(order.productsJSON);
+    const parsedProducts: Record<string, OrderProduct> = JSON.parse(order.productsJSON || '{}');
 
     const enrichedProducts: UIProduct[] = Object.entries(parsedProducts).map(([productId, item]) => {
       const productDetails = products.find(p => p.id === productId);

@@ -29,7 +29,7 @@ export const BaseLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 flex flex-col">
+    <div className="min-h-screen text-gray-800 flex flex-col">
       <header className="bg-green-700 text-white shadow-md">
         <nav className="container mx-auto px-6 py-3 flex items-center justify-between">
 

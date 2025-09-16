@@ -4,7 +4,7 @@ export default function UserLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
+    <div className="min-h-screen bg-gray-50/75" dir="rtl">
       <main className="container mx-auto px-6 py-8">
         {children}
       </main>

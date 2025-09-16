@@ -1,24 +1,75 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { getOrderWithProducts } from '@/features/orders/actions';
 import { UIOrder } from '@/core/types';
-import { Stepper } from '@/ui/stepper/Stepper'; // Assuming a generic Stepper component
+import { CheckCircle2 } from 'lucide-react';
 
-interface OrderDetailsPageProps {
-  params: { orderId: string };
+// Step 1: Display Customer and Order Details
+function CustomerDetailsStep({ order }: { order: UIOrder }) {
+  return (
+    <div className="bg-brand-cream p-8 rounded-2xl border-2 border-brand-brown max-w-2xl mx-auto">
+      <h3 className="text-2xl font-bold text-brand-dark mb-4">פרטי לקוח</h3>
+      <div className="space-y-3 text-lg">
+        <p><strong>שם הלקוח:</strong> {order.customerName}</p>
+        <p><strong>טלפון:</strong> {order.customerPhone}</p>
+        <p><strong>תאריך הזמנה:</strong> {new Date(order.createdAt).toLocaleDateString('he-IL')}</p>
+      </div>
+    </div>
+  );
 }
 
-const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ params }) => {
+// Step 2: Display Product Details
+function ProductDetailsStep({ order }: { order: UIOrder }) {
+  return (
+    <div className="bg-brand-cream p-8 rounded-2xl border-2 border-brand-brown max-w-2xl mx-auto">
+      <h3 className="text-2xl font-bold text-brand-dark mb-6">המוצרים שהוזמנו</h3>
+      <ul className="space-y-4">
+        {order.products.map((product) => (
+          <li key={product.productId} className="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-soft border border-brand-brown/50">
+            <img src={product.imageUrl} alt={product.name} className="w-24 h-24 object-cover rounded-lg" />
+            <div className="flex-grow">
+              <p className="font-bold text-lg text-brand-dark">{product.name}</p>
+              <p className="text-gray-600">כמות: <span className="font-bold">{product.qty}</span></p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// Step 3: Summary Step
+function SummaryStep({ order }: { order: UIOrder }) {
+  return (
+    <div className="bg-gradient-to-br from-brand-leaf to-brand-dark p-10 rounded-2xl shadow-2xl text-center max-w-2xl mx-auto text-green-900">
+      <CheckCircle2 size={64} className="mx-auto mb-4 text-brand-gold" />
+      <h2 className="text-4xl font-extrabold mb-4">הזמנה הושלמה בהצלחה!</h2>
+      <p className="text-lg opacity-90">תודה רבה שהזמנתם מאיתנו, חג שמח!</p>
+      <p className="text-base opacity-80 mt-6">אישור הזמנה ופרטים נוספים נשלחו אליך.</p>
+      <div className="mt-8 font-mono bg-black/20 rounded-lg px-4 py-2 inline-block">
+        מספר הזמנה: {order.orderId}
+      </div>
+    </div>
+  );
+}
+
+const OrderDetailsPage: React.FC = () => {
+  const params = useParams<{ orderId: string }>();
+  const orderId = Array.isArray(params.orderId) ? params.orderId[0] : params.orderId;
+
   const [order, setOrder] = useState<UIOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!orderId) return;
+
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        const fetchedOrder = await getOrderWithProducts(params.orderId);
+        const fetchedOrder = await getOrderWithProducts(orderId);
         if (fetchedOrder) {
           setOrder(fetchedOrder);
         } else {
@@ -33,81 +84,29 @@ const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ params }) => {
     };
 
     fetchOrder();
-  }, [params.orderId]);
+  }, [orderId]);
 
   if (loading) {
-    return <div className="container mx-auto text-center py-20">Loading...</div>;
+    return (
+      <div className="w-full h-screen flex flex-col items-center justify-center bg-brand-cream">
+        <p className="text-2xl font-bold text-brand-dark">טוען פרטי הזמנה...</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="container mx-auto text-center py-20 text-red-500">{error}</div>;
+    return (
+      <div className="w-full h-screen flex flex-col items-center justify-center bg-brand-cream">
+        <p className="text-2xl font-bold text-red-600">שגיאה: {error}</p>
+      </div>
+    );
   }
 
   if (!order) {
-    return null; // Or some other placeholder
+    return null;
   }
 
-  // Define steps for the stepper UI
-  const steps = [
-    {
-      title: 'פרטי הזמנה',
-      content: <CustomerDetailsStep order={order} />,
-    },
-    {
-      title: 'מוצרים',
-      content: <ProductDetailsStep order={order} />,
-    },
-    {
-      title: 'סיכום',
-      content: <SummaryStep order={order} />,
-    },
-  ];
-
-  return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold text-center mb-8">פרטי הזמנה: {order.orderId}</h1>
-      <Stepper steps={steps} />
-    </div>
-  );
+  return (<SummaryStep order={order} />);
 };
-
-// Step 1: Display Customer and Order Details
-const CustomerDetailsStep: React.FC<{ order: UIOrder }> = ({ order }) => (
-  <div className="bg-white p-6 rounded-lg shadow-md">
-    <p><strong>שם הלקוח:</strong> {order.customerName}</p>
-    <p><strong>תאריך הזמנה:</strong> {new Date(order.createdAt).toLocaleDateString('he-IL')}</p>
-  </div>
-);
-
-// Step 2: Display Product Details
-const ProductDetailsStep: React.FC<{ order: UIOrder }> = ({ order }) => (
-  <div className="bg-white p-6 rounded-lg shadow-md">
-    <ul className="space-y-4">
-      {order.products.map((product) => (
-        <li key={product.productId} className="flex items-center space-x-4">
-          <img src={product.imageUrl} alt={product.name} className="w-20 h-20 object-cover rounded-md" />
-          <div>
-            <p className="font-bold">{product.name} (x{product.qty})</p>
-            {/* Display dynamic properties */}
-            {Object.entries(product).map(([key, value]) => {
-              if (['productId', 'name', 'imageUrl', 'qty'].includes(key)) return null;
-              return <p key={key} className="text-sm text-gray-600"><strong>{key}:</strong> {String(value)}</p>;
-            })}
-          </div>
-        </li>
-      ))}
-    </ul>
-  </div>
-);
-
-// Step 3: Summary Step
-const SummaryStep: React.FC<{ order: UIOrder }> = ({ order }) => (
-    <div className="bg-white p-10 rounded-lg shadow-lg text-center">
-        <h2 className="text-2xl font-bold text-olive mb-4">הזמנה הושלמה</h2>
-        <p className="text-gray-700">תודה רבה שהזמנתם מאיתנו!</p>
-        <p className="text-gray-500 mt-4">אישור הזמנה יישלח אליך בקרוב במייל.</p>
-    </div>
-);
-
 
 export default OrderDetailsPage;

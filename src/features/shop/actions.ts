@@ -1,30 +1,66 @@
 'use server';
 
-import { Cart, CustomerInfo } from '@/core/types';
+import { Cart, CustomerInfo, Order } from '@/core/types';
 import { googleSheetService } from '@/services/google-sheets';
 import { redirect } from 'next/navigation';
 
 export async function createSingleProductOrder(cart: Cart, customerInfo: CustomerInfo) {
+  let newOrderId;
   try {
-    // Check if customer exists, if not, add them
+    // 1. Find or create the customer
     let customer = (await googleSheetService.getCustomers()).find(
       (c) => c.phone === customerInfo.phone
     );
 
     if (!customer) {
-      customer = await googleSheetService.addCustomer(customerInfo);
+      // Create a customer object without the notes for saving
+      const customerData = {
+        fullName: customerInfo.fullName,
+        phone: customerInfo.phone,
+        email: customerInfo.email,
+        address: customerInfo.address
+      };
+      customer = await googleSheetService.addCustomer(customerData);
     }
 
-    const newOrder = await googleSheetService.addSingleProductOrder(
-      cart,
-      customer.customerId,
-      'Pending' // Default status
-    );
+    // 2. Calculate total price and prepare products JSON
+    const products = await googleSheetService.getProducts();
+    let totalPrice = 0;
+    const productsInOrder: Record<string, { qty: number }> = {};
 
-    // Redirect to payment options (placeholder for now)
-    redirect(`/order-confirmation/${newOrder.orderId}`);
+    for (const productId in cart) {
+      const cartItem = cart[productId];
+      const product = products.find(p => p.id === productId);
+
+      if (product) {
+        totalPrice += product.price * cartItem.qty;
+        productsInOrder[productId] = { qty: cartItem.qty };
+      } else {
+        console.warn(`Product with ID ${productId} not found while creating order.`);
+      }
+    }
+
+    // 3. Create the complete order object, including notes
+    const orderData: Omit<Order, 'orderId' | 'orderDate' | 'status'> = {
+      customerId: customer.customerId,
+      productsJSON: JSON.stringify(productsInOrder),
+      totalPrice: totalPrice,
+      notes: customerInfo.notes, // Pass the notes here
+    };
+
+    // 4. Add the order using the generic addOrder function
+    const newOrder = await googleSheetService.addOrder(orderData);
+    newOrderId = newOrder.orderId;
+    // The redirect needs to be called outside the try/catch block
+
   } catch (error) {
     console.error('Failed to create single product order:', error);
-    return { success: false, error: 'Failed to create order.' };
+    if (error instanceof Error) {
+      throw new Error(`Failed to create single product order: ${error.message}`);
+    }
+    throw new Error('Failed to create single product order due to an unknown error.');
+  }
+  if (newOrderId) {
+    redirect(`/order-confirmation/${newOrderId}`);
   }
 }

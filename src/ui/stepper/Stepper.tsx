@@ -16,6 +16,12 @@ export const Stepper: React.FC<PremiumStepperProps> = ({ steps, currentStep, onS
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      // Ignore key presses if the target is an input, textarea, or select element
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+        return;
+      }
+
       if (e.key === 'Enter' && currentStep < steps.length - 1) {
         onStepChange(currentStep + 1);
       }
@@ -52,13 +58,16 @@ export const Stepper: React.FC<PremiumStepperProps> = ({ steps, currentStep, onS
       </AnimatePresence>
 
       {/* --- Navigation --- */}
-      <div className="flex justify-around items-center mt-10 px-4">
+      <div className={`flex items-center mt-10 px-4 ${currentStep < steps.length - 1 ? 'justify-around' : 'justify-start'}`}>
         <NavButton onClick={() => onStepChange(currentStep - 1)} disabled={currentStep === 0}>
           חזור
         </NavButton>
-        <NavButton onClick={() => onStepChange(currentStep + 1)} disabled={currentStep === steps.length - 1}>
-          המשך
-        </NavButton>
+        
+        {currentStep < steps.length - 1 && (
+          <NavButton onClick={() => onStepChange(currentStep + 1)} disabled={currentStep === steps.length - 1}>
+            המשך
+          </NavButton>
+        )}
       </div>
     </div>
   );

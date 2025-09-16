@@ -1,5 +1,5 @@
 import { sheets } from './client';
-import type { Product, Order, Customer, User, Cart } from '@/core/types';
+import type { Product, Order, Customer, User, Cart, CustomerInfo } from '@/core/types';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const PRODUCTS_SHEET_NAME = 'Products';
@@ -127,15 +127,15 @@ const addOrder = async (order: Omit<Order, 'orderId' | 'orderDate' | 'status'> &
     ...order,
     orderId: newOrderId,
     orderDate: new Date().toISOString(),
-    status: order.status || 'Pending', // Default to Pending if not provided
+    status: order.status || 'Pending',
   };
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A:F`, // A:F for 6 columns
+    range: `${ORDERS_SHEET_NAME}!A:G`, // Updated range to include Notes column
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[newOrder.orderId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status]],
+      values: [[newOrder.orderId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status, newOrder.notes || '']],
     },
   });
 
@@ -205,7 +205,7 @@ const updateCustomer = async (id: string, updates: Partial<Omit<Customer, 'custo
 const getOrders = async (): Promise<Order[]> => {
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A2:F`,
+    range: `${ORDERS_SHEET_NAME}!A2:G`, // Updated range
   });
 
   const values = response.data.values;
@@ -220,6 +220,7 @@ const getOrders = async (): Promise<Order[]> => {
     totalPrice: parseFloat(row[3]),
     orderDate: row[4],
     status: row[5] as 'Pending' | 'Completed',
+    notes: row[6] || '', // Added notes field
   }));
 };
 
@@ -233,14 +234,14 @@ const updateOrder = async (id: string, updates: Partial<Omit<Order, 'orderId'>>)
   const orderToUpdate = orders[orderIndex];
   const updatedOrder = { ...orderToUpdate, ...updates };
 
-  const range = `${ORDERS_SHEET_NAME}!A${orderIndex + 2}:F${orderIndex + 2}`;
+  const range = `${ORDERS_SHEET_NAME}!A${orderIndex + 2}:G${orderIndex + 2}`;
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
     range,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[updatedOrder.orderId, updatedOrder.customerId, updatedOrder.productsJSON, updatedOrder.totalPrice, updatedOrder.orderDate, updatedOrder.status]],
+      values: [[updatedOrder.orderId, updatedOrder.customerId, updatedOrder.productsJSON, updatedOrder.totalPrice, updatedOrder.orderDate, updatedOrder.status, updatedOrder.notes || '']],
     },
   });
 
@@ -259,45 +260,8 @@ const getSheetId = async (sheetName: string): Promise<number | null> => {
   return sheet?.properties?.sheetId ?? null;
 };
 
-const addSingleProductOrder = async (cart: Cart, customerId: string, status: Order['status']): Promise<Order> => {
-  const newOrderId = `ORD-${Date.now()}`;
-  const products = await getProducts(); // Fetch all products to get prices
-
-  let totalPrice = 0;
-  const productsInOrder: Record<string, { qty: number }> = {};
-
-  for (const productId in cart) {
-    const cartItem = cart[productId];
-    const product = products.find(p => p.id === productId);
-
-    if (product) {
-      totalPrice += product.price * cartItem.qty;
-      productsInOrder[productId] = { qty: cartItem.qty };
-    } else {
-      console.warn(`Product with ID ${productId} not found in sheets.`);
-    }
-  }
-
-  const newOrder: Order = {
-    orderId: newOrderId,
-    customerId: customerId,
-    productsJSON: JSON.stringify(productsInOrder),
-    totalPrice: totalPrice,
-    orderDate: new Date().toISOString(),
-    status: status,
-  };
-
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A:F`, // A:F for 6 columns
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
-      values: [[newOrder.orderId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status]],
-    },
-  });
-
-  return newOrder;
-};
+// This function is no longer needed as the logic is moved to the action
+// const addSingleProductOrder = ... 
 
 export const googleSheetService = {
   getProducts,
@@ -311,5 +275,4 @@ export const googleSheetService = {
   addOrder,
   updateOrder,
   getUsers,
-  addSingleProductOrder,
 };
