@@ -6,6 +6,20 @@ import { googleSheetService } from "@/services/google-sheets";
 export type ProductsByCategory = Record<string, Product[]>;
 
 /**
+ * Server Action: Fetches all products from Google Sheets.
+ * @returns A promise that resolves to an array of all products.
+ */
+export const getProductsAction = async (): Promise<Product[]> => {
+  try {
+    const products = await googleSheetService.getProducts();
+    return products;
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    return []; // Return an empty array in case of an error
+  }
+};
+
+/**
  * Server Action: Fetches all products from Google Sheets and groups them by category.
  * @returns A promise that resolves to a dictionary of products grouped by category.
  */

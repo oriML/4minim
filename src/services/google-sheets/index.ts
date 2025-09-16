@@ -1,11 +1,13 @@
 import { sheets } from './client';
 import type { Product, Order, Customer, User, Cart, CustomerInfo } from '@/core/types';
+import type { Set } from '@/features/sets/types';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const PRODUCTS_SHEET_NAME = 'Products';
 const ORDERS_SHEET_NAME = 'Orders';
 const CUSTOMERS_SHEET_NAME = 'Customers';
 const USERS_SHEET_NAME = 'Users';
+const SETS_SHEET_NAME = 'Sets';
 
 const getProducts = async (): Promise<Product[]> => {
     const response = await sheets.spreadsheets.values.get({
@@ -260,8 +262,36 @@ const getSheetId = async (sheetName: string): Promise<number | null> => {
   return sheet?.properties?.sheetId ?? null;
 };
 
-// This function is no longer needed as the logic is moved to the action
-// const addSingleProductOrder = ... 
+const getSets = async (): Promise<Set[]> => {
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${SETS_SHEET_NAME}!A2:F`, // Assuming A:F for id, title, description, productsJson, price, imageUrl
+  });
+
+  const values = response.data.values;
+  if (!values) {
+    return [];
+  }
+
+  return values.map((row) => {
+    console.log(`Set Image URL: ${row[5]}`); // Log the image URL
+    return ({
+      id: row[0],
+      title: row[1],
+      description: row[2],
+      productsJson: (() => {
+        try {
+          return JSON.parse(row[3] || '{}');
+        } catch (e) {
+          console.warn(`Invalid JSON in productsJson for set ID ${row[0]}:`, row[3], e);
+          return {}; // Default to empty object on error
+        }
+      })(),
+      price: parseFloat(row[4]),
+      imageUrl: row[5],
+    });
+  });
+};
 
 export const googleSheetService = {
   getProducts,
@@ -275,4 +305,5 @@ export const googleSheetService = {
   addOrder,
   updateOrder,
   getUsers,
+  getSets, // New: Export getSets
 };
