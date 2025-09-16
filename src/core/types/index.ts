@@ -31,37 +31,7 @@ export interface Order {
   productsJSON: string; // ProductsJSON (stringified JSON)
   totalPrice: number; // TotalPrice (number)
   orderDate: string; // OrderDate (ISO string)
-  status: 'Pending' | 'Completed';
-}
-
-export interface CartItem {
-  qty: number;
-}
-
-export interface Cart {
-  [productId: string]: CartItem;
-}
-
-export interface CustomerInfo {
-  fullName: string;
-  phone: string;
-  email: string;
-  address: string;
-}
-
-export interface CartItem {
-  qty: number;
-}
-
-export interface Cart {
-  [productId: string]: CartItem;
-}
-
-export interface CustomerInfo {
-  fullName: string;
-  phone: string;
-  email: string;
-  address: string;
+  status: 'Pending' | 'Completed' | 'Canceled'; // Status (string: Pending/Completed)
 }
 
 // The shape of the product data stored in the order's JSON field
@@ -92,6 +62,9 @@ export interface UIOrder {
   orderId: string;
   customerId: string;
   customerName: string;
+  customerPhone: string;
   products: UIProduct[];
+  totalPrice: number;
   createdAt: Date;
+  status: 'Pending' | 'Completed' | 'Canceled';
 }
