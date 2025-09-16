@@ -1,13 +1,13 @@
-import React from 'react';
-
 export default function UserLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <>
-      {children}
-    </>
+    <div className="min-h-screen bg-gray-50" dir="rtl">
+      <main className="container mx-auto px-6 py-8">
+        {children}
+      </main>
+    </div>
   );
 }

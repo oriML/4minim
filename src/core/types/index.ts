@@ -31,7 +31,37 @@ export interface Order {
   productsJSON: string; // ProductsJSON (stringified JSON)
   totalPrice: number; // TotalPrice (number)
   orderDate: string; // OrderDate (ISO string)
-  status: 'Pending' | 'Completed'; // Status (string: Pending/Completed)
+  status: 'Pending' | 'Completed';
+}
+
+export interface CartItem {
+  qty: number;
+}
+
+export interface Cart {
+  [productId: string]: CartItem;
+}
+
+export interface CustomerInfo {
+  fullName: string;
+  phone: string;
+  email: string;
+  address: string;
+}
+
+export interface CartItem {
+  qty: number;
+}
+
+export interface Cart {
+  [productId: string]: CartItem;
+}
+
+export interface CustomerInfo {
+  fullName: string;
+  phone: string;
+  email: string;
+  address: string;
 }
 
 // The shape of the product data stored in the order's JSON field

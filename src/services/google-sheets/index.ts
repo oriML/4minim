@@ -1,5 +1,5 @@
 import { sheets } from './client';
-import type { Product, Order, Customer, User } from '@/core/types';
+import type { Product, Order, Customer, User, Cart } from '@/core/types';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const PRODUCTS_SHEET_NAME = 'Products';
@@ -50,7 +50,7 @@ const getUsers = async (): Promise<User[]> => {
   }));
 };
 
-const addProduct = async (product: Omit<Product, 'ID'>): Promise<Product> => {
+const addProduct = async (product: Omit<Product, 'id'>): Promise<Product> => {
   const newId = `PROD-${Date.now()}`;
   const newProduct: Product = { ...product, id: newId };
 
@@ -66,7 +66,7 @@ const addProduct = async (product: Omit<Product, 'ID'>): Promise<Product> => {
   return newProduct;
 };
 
-const updateProduct = async (id: string, updates: Partial<Omit<Product, 'ID'>>): Promise<Product> => {
+const updateProduct = async (id: string, updates: Partial<Omit<Product, 'id'>>): Promise<Product> => {
   const products = await getProducts();
   const productIndex = products.findIndex((p) => p.id === id);
   if (productIndex === -1) {
@@ -90,9 +90,9 @@ const updateProduct = async (id: string, updates: Partial<Omit<Product, 'ID'>>):
   return updatedProduct;
 };
 
-const deleteProduct = async (ID: string): Promise<void> => {
+const deleteProduct = async (id: string): Promise<void> => {
   const products = await getProducts();
-  const productIndex = products.findIndex((p) => p.id === ID);
+  const productIndex = products.findIndex((p) => p.id === id);
   if (productIndex === -1) {
     throw new Error('Product not found');
   }
@@ -121,13 +121,13 @@ const deleteProduct = async (ID: string): Promise<void> => {
   });
 };
 
-const addOrder = async (order: Omit<Order, 'OrderID' | 'OrderDate' | 'Status'> & { Status?: 'Pending' | 'Completed' }): Promise<Order> => {
+const addOrder = async (order: Omit<Order, 'orderId' | 'orderDate' | 'status'> & { status?: 'Pending' | 'Completed' }): Promise<Order> => {
   const newOrderId = `ORD-${Date.now()}`;
   const newOrder: Order = {
     ...order,
     orderId: newOrderId,
     orderDate: new Date().toISOString(),
-    status: order.Status || 'Pending', // Default to Pending if not provided
+    status: order.status || 'Pending', // Default to Pending if not provided
   };
 
   await sheets.spreadsheets.values.append({
@@ -162,7 +162,7 @@ const getCustomers = async (): Promise<Customer[]> => {
   }));
 };
 
-const addCustomer = async (customer: Omit<Customer, 'CustomerID'>): Promise<Customer> => {
+const addCustomer = async (customer: Omit<Customer, 'customerId'>): Promise<Customer> => {
   const newCustomerId = `CUST-${Date.now()}`;
   const newCustomer: Customer = { ...customer, customerId: newCustomerId };
 
@@ -178,9 +178,9 @@ const addCustomer = async (customer: Omit<Customer, 'CustomerID'>): Promise<Cust
   return newCustomer;
 };
 
-const updateCustomer = async (ID: string, updates: Partial<Omit<Customer, 'CustomerID'>>): Promise<Customer> => {
+const updateCustomer = async (id: string, updates: Partial<Omit<Customer, 'customerId'>>): Promise<Customer> => {
   const customers = await getCustomers();
-  const customerIndex = customers.findIndex((c) => c.customerId === ID);
+  const customerIndex = customers.findIndex((c) => c.customerId === id);
   if (customerIndex === -1) {
     throw new Error('Customer not found');
   }
@@ -223,9 +223,9 @@ const getOrders = async (): Promise<Order[]> => {
   }));
 };
 
-const updateOrder = async (ID: string, updates: Partial<Omit<Order, 'OrderID'>>): Promise<Order> => {
+const updateOrder = async (id: string, updates: Partial<Omit<Order, 'orderId'>>): Promise<Order> => {
   const orders = await getOrders();
-  const orderIndex = orders.findIndex((o) => o.orderId === ID);
+  const orderIndex = orders.findIndex((o) => o.orderId === id);
   if (orderIndex === -1) {
     throw new Error('Order not found');
   }
@@ -259,6 +259,46 @@ const getSheetId = async (sheetName: string): Promise<number | null> => {
   return sheet?.properties?.sheetId ?? null;
 };
 
+const addSingleProductOrder = async (cart: Cart, customerId: string, status: Order['status']): Promise<Order> => {
+  const newOrderId = `ORD-${Date.now()}`;
+  const products = await getProducts(); // Fetch all products to get prices
+
+  let totalPrice = 0;
+  const productsInOrder: Record<string, { qty: number }> = {};
+
+  for (const productId in cart) {
+    const cartItem = cart[productId];
+    const product = products.find(p => p.id === productId);
+
+    if (product) {
+      totalPrice += product.price * cartItem.qty;
+      productsInOrder[productId] = { qty: cartItem.qty };
+    } else {
+      console.warn(`Product with ID ${productId} not found in sheets.`);
+    }
+  }
+
+  const newOrder: Order = {
+    orderId: newOrderId,
+    customerId: customerId,
+    productsJSON: JSON.stringify(productsInOrder),
+    totalPrice: totalPrice,
+    orderDate: new Date().toISOString(),
+    status: status,
+  };
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${ORDERS_SHEET_NAME}!A:F`, // A:F for 6 columns
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values: [[newOrder.orderId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status]],
+    },
+  });
+
+  return newOrder;
+};
+
 export const googleSheetService = {
   getProducts,
   addProduct,
@@ -271,4 +311,5 @@ export const googleSheetService = {
   addOrder,
   updateOrder,
   getUsers,
+  addSingleProductOrder,
 };

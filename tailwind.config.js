@@ -4,8 +4,12 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    extend: {
+      colors: {
+        olive: '#708238',
+      },
+    },
     colors: {
-      olive: '#708238',
       white: '#FFFFFF',
     },
   },
