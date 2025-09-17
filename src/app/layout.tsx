@@ -1,6 +1,12 @@
 import './global.css';
 import { BaseLayout } from '@/ui/layouts/BaseLayout';
 import { AppProvider } from '@/core/state/AppProvider';
+import { Alef } from 'next/font/google';
+
+const alef = Alef({
+  subsets: ['hebrew', 'latin'],
+  weight: ['400', '700'],
+});
 
 export const metadata = {
   title: 'ארבעת המינים',
@@ -17,7 +23,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="favicon.ico" sizes="any" />
       </head>
-      <body>
+      <body className={alef.className}>
         <AppProvider>
           <BaseLayout>{children}</BaseLayout>
         </AppProvider>

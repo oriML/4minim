@@ -12,7 +12,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { getAuthTokenClient } from '@/core/auth/clientAuth';
 
 interface NavLink {
   href: string;
@@ -21,18 +20,6 @@ interface NavLink {
 
 export const BaseLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const token = getAuthTokenClient();
-    if (token) {
-      // In a real application, you would also validate the token (e.g., check expiration)
-      // For now, just checking for presence is enough to assume admin status for redirection
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
-  }, []);
 
   const navLinks: NavLink[] = [
     { href: '/buy-products', label: 'קנה מוצרים' },

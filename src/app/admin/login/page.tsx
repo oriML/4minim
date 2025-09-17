@@ -13,7 +13,7 @@ function SubmitButton() {
       disabled={pending}
       className="w-full bg-green-700 text-white font-bold py-3 px-4 rounded-md hover:bg-opacity-90 transition-colors disabled:opacity-50"
     >
-      {pending ? 'Logging in...' : 'Login'}
+      {pending ? 'מתחבר...' : 'התחבר'}
     </button>
   );
 }
