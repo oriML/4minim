@@ -123,13 +123,13 @@ const deleteProduct = async (id: string): Promise<void> => {
   });
 };
 
-const addOrder = async (order: Omit<Order, 'orderId' | 'orderDate' | 'status'> & { status?: 'Pending' | 'Completed' }): Promise<Order> => {
+const addOrder = async (order: Omit<Order, 'orderId' | 'orderDate' | 'status'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה' }): Promise<Order> => {
   const newOrderId = `ORD-${Date.now()}`;
   const newOrder: Order = {
     ...order,
     orderId: newOrderId,
     orderDate: new Date().toISOString(),
-    status: order.status || 'Pending',
+    status: order.status || 'בהמתנה',
   };
 
   await sheets.spreadsheets.values.append({
@@ -221,7 +221,7 @@ const getOrders = async (): Promise<Order[]> => {
     productsJSON: row[2],
     totalPrice: parseFloat(row[3]),
     orderDate: row[4],
-    status: row[5] as 'Pending' | 'Completed' | 'Canceled',
+    status: row[5] as 'בהמתנה' | 'בוצעה' | 'בוטלה',
     notes: row[6] || '',
   }));
 };

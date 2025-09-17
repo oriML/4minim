@@ -47,10 +47,10 @@ async function AdminDashboardPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <Tabs defaultValue="orders" className="w-full">
+      <Tabs defaultValue="summary" className="w-full">
         <TabsList className="grid w-full grid-cols-3 sticky top-0 z-10 bg-white p-2 rounded-lg shadow-md">
-          <TabsTrigger value="orders" className="data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-md transition-all duration-200">הזמנות</TabsTrigger>
           <TabsTrigger value="products" className="data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-md transition-all duration-200">מוצרים</TabsTrigger>
+          <TabsTrigger value="orders" className="data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-md transition-all duration-200">הזמנות</TabsTrigger>
           <TabsTrigger value="summary" className="data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-md transition-all duration-200">סיכום</TabsTrigger>
         </TabsList>
 

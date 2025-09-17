@@ -31,9 +31,9 @@ export function SummaryDashboard({ orders, products }: SummaryDashboardProps) {
   });
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card title="Total Orders" value={totalOrders} />
-      <Card title="Products Sold" value={totalProductsSold} />
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" dir="rtl">
+      <Card title="סך כל ההזמנות" value={totalOrders} />
+      <Card title="מוצרים שנמכרו" value={totalProductsSold} />
       <Card title="לקוחות ייחודיים" value={uniqueCustomers} />
       <Card title="פירוט לפי קטגוריות">
         <ul className="text-sm text-gray-600">
@@ -61,9 +61,9 @@ interface CardProps {
 
 function Card({ title, value, children }: CardProps) {
   return (
-    <div className="rounded-lg border bg-white p-6 shadow-sm">
-      <h3 className="mb-2 text-lg font-semibold text-gray-700">{title}</h3>
-      {value !== undefined && <p className="text-3xl font-bold text-gray-900">{value}</p>}
+    <div className="rounded-lg border bg-white p-6 shadow-sm" dir="rtl">
+      <h3 className="mb-2 text-lg font-semibold text-gray-700 text-right">{title}</h3>
+      {value !== undefined && <p className="text-3xl font-bold text-gray-900 text-right">{value}</p>}
       {children}
     </div>
   );

@@ -47,7 +47,7 @@ export interface Order {
   productsJSON: string; // ProductsJSON (stringified JSON)
   totalPrice: number; // TotalPrice (number)
   orderDate: string; // OrderDate (ISO string)
-  status: 'Pending' | 'Completed' | 'Canceled'; // Status (string: Pending/Completed)
+  status: 'בהמתנה' | 'בוצעה' | 'בוטלה'; // Status (string: Pending/Completed)
   notes?: string; // Optional notes for the order
 }
 
@@ -65,7 +65,7 @@ export interface DBOrder {
   customerId: string;
   products: Record<string, OrderProduct>; // JSON object with productId as key
   createdAt: Date;
-  status: 'Pending' | 'Completed' | 'Canceled';
+  status: 'בהמתנה' | 'בוצעה' | 'בוטלה';
   notes?: string;
 }
 
@@ -86,5 +86,5 @@ export interface UIOrder {
   totalPrice: number;
   createdAt: Date;
   notes?: string;
-  status: 'Pending' | 'Completed' | 'Canceled';
+  status: 'בהמתנה' | 'בוצעה' | 'בוטלה';
 }
