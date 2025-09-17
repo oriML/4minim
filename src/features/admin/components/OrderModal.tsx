@@ -16,16 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { parseProductsJson } from '@/core/utils/parsing';
 
 interface OrderModalProps {
   order: UIOrder;
   isOpen: boolean;
   onClose: () => void;
   onStatusChange: (orderId: string, newStatus: UIOrder['status']) => void;
+  onPaymentStatusChange: (orderId: string, newStatus: UIOrder['paymentStatus']) => void;
 }
 
-export function OrderModal({ order, isOpen, onClose, onStatusChange }: OrderModalProps) {
+export function OrderModal({ order, isOpen, onClose, onStatusChange, onPaymentStatusChange }: OrderModalProps) {
   const printRef = React.useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
@@ -45,7 +45,6 @@ export function OrderModal({ order, isOpen, onClose, onStatusChange }: OrderModa
     }
   };
 
-  // The products are already parsed in the UIOrder type, so we can use them directly.
   const products = order.products;
 
   return (
@@ -70,6 +69,7 @@ export function OrderModal({ order, isOpen, onClose, onStatusChange }: OrderModa
                 <p>תאריך: {new Date(order.createdAt).toLocaleDateString()}</p>
                 <p>סך הכל: ${order.totalPrice.toFixed(2)}</p>
                 <p>סטטוס: {order.status}</p>
+                <p>סטטוס תשלום: {order.paymentStatus}</p>
               </div>
             </div>
             <div>
@@ -101,6 +101,18 @@ export function OrderModal({ order, isOpen, onClose, onStatusChange }: OrderModa
                 <SelectItem value="בהמתנה">בהמתנה</SelectItem>
                 <SelectItem value="בוצעה">בוצעה</SelectItem>
                 <SelectItem value="בוטלה">בוטלה</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              defaultValue={order.paymentStatus}
+              onValueChange={(newStatus: UIOrder['paymentStatus']) => onPaymentStatusChange(order.orderId, newStatus)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="שנה סטטוס תשלום" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="שולם">שולם</SelectItem>
+                <SelectItem value="לא שולם">לא שולם</SelectItem>
               </SelectContent>
             </Select>
           </div>

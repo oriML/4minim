@@ -123,21 +123,22 @@ const deleteProduct = async (id: string): Promise<void> => {
   });
 };
 
-const addOrder = async (order: Omit<Order, 'orderId' | 'orderDate' | 'status'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה' }): Promise<Order> => {
+const addOrder = async (order: Omit<Order, 'orderId' | 'orderDate' | 'status' | 'paymentStatus'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה', paymentStatus?: 'שולם' | 'לא שולם' }): Promise<Order> => {
   const newOrderId = `ORD-${Date.now()}`;
   const newOrder: Order = {
     ...order,
     orderId: newOrderId,
     orderDate: new Date().toISOString(),
     status: order.status || 'בהמתנה',
+    paymentStatus: order.paymentStatus || 'לא שולם',
   };
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A:G`, // Updated range to include Notes column
+    range: `${ORDERS_SHEET_NAME}!A:H`, // Updated range to include Notes and Payment Status column
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[newOrder.orderId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status, newOrder.notes || '']],
+      values: [[newOrder.orderId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status, newOrder.notes || '', newOrder.paymentStatus]],
     },
   });
 
@@ -207,7 +208,7 @@ const updateCustomer = async (id: string, updates: Partial<Omit<Customer, 'custo
 const getOrders = async (): Promise<Order[]> => {
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A2:G`, // Updated range
+    range: `${ORDERS_SHEET_NAME}!A2:H`, // Updated range
   });
 
   const values = response.data.values;
@@ -223,6 +224,7 @@ const getOrders = async (): Promise<Order[]> => {
     orderDate: row[4],
     status: row[5] as 'בהמתנה' | 'בוצעה' | 'בוטלה',
     notes: row[6] || '',
+    paymentStatus: (row[7] as 'שולם' | 'לא שולם') || 'לא שולם',
   }));
 };
 
@@ -236,14 +238,14 @@ const updateOrder = async (id: string, updates: Partial<Omit<Order, 'orderId'>>)
   const orderToUpdate = orders[orderIndex];
   const updatedOrder = { ...orderToUpdate, ...updates };
 
-  const range = `${ORDERS_SHEET_NAME}!A${orderIndex + 2}:G${orderIndex + 2}`;
+  const range = `${ORDERS_SHEET_NAME}!A${orderIndex + 2}:H${orderIndex + 2}`;
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
     range,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[updatedOrder.orderId, updatedOrder.customerId, updatedOrder.productsJSON, updatedOrder.totalPrice, updatedOrder.orderDate, updatedOrder.status, updatedOrder.notes || '']],
+      values: [[updatedOrder.orderId, updatedOrder.customerId, updatedOrder.productsJSON, updatedOrder.totalPrice, updatedOrder.orderDate, updatedOrder.status, updatedOrder.notes || '', updatedOrder.paymentStatus]],
     },
   });
 

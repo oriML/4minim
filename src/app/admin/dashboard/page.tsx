@@ -42,6 +42,7 @@ async function AdminDashboardPage() {
       totalPrice: order.totalPrice,
       createdAt: new Date(order.orderDate),
       status: order.status,
+      paymentStatus: order.paymentStatus,
     };
   });
 

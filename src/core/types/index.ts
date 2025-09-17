@@ -48,6 +48,7 @@ export interface Order {
   totalPrice: number; // TotalPrice (number)
   orderDate: string; // OrderDate (ISO string)
   status: 'בהמתנה' | 'בוצעה' | 'בוטלה'; // Status (string: Pending/Completed)
+  paymentStatus: 'שולם' | 'לא שולם';
   notes?: string; // Optional notes for the order
 }
 
@@ -66,6 +67,7 @@ export interface DBOrder {
   products: Record<string, OrderProduct>; // JSON object with productId as key
   createdAt: Date;
   status: 'בהמתנה' | 'בוצעה' | 'בוטלה';
+  paymentStatus: 'שולם' | 'לא שולם';
   notes?: string;
 }
 
@@ -87,4 +89,5 @@ export interface UIOrder {
   createdAt: Date;
   notes?: string;
   status: 'בהמתנה' | 'בוצעה' | 'בוטלה';
+  paymentStatus: 'שולם' | 'לא שולם';
 }

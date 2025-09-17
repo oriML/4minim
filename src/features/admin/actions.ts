@@ -16,6 +16,17 @@ export async function updateOrderStatus(orderId: string, newStatus: Order['statu
   }
 }
 
+export async function updateOrderPaymentStatus(orderId: string, newStatus: Order['paymentStatus']) {
+  try {
+    await googleSheetService.updateOrder(orderId, { paymentStatus: newStatus });
+    revalidatePath("/admin/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to update order payment status:", error);
+    return { success: false, error: "עדכון סטטוס תשלום נכשל." };
+  }
+}
+
 export async function deleteProductAction(productId: string) {
   try {
     await googleSheetService.deleteProduct(productId);

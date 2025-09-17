@@ -11,8 +11,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { updateOrderStatus } from '@/features/admin/actions';
+import { updateOrderStatus, updateOrderPaymentStatus } from '@/features/admin/actions';
 import { OrderModal } from './OrderModal';
+import { MoreVertical } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface OrderTableProps {
   orders: UIOrder[];
@@ -31,6 +38,16 @@ export function OrderTable({ orders }: OrderTableProps) {
     }
   };
 
+  const handlePaymentStatusUpdate = async (orderId: string, newStatus: UIOrder['paymentStatus']) => {
+    const result = await updateOrderPaymentStatus(orderId, newStatus);
+    if (result.success) {
+      alert('סטטוס התשלום עודכן בהצלחה!');
+      setSelectedOrder(prev => prev ? { ...prev, paymentStatus: newStatus } : null);
+    } else {
+      alert(`עדכון סטטוס תשלום נכשל: ${result.error}`);
+    }
+  };
+
   return (
     <>
       <div className="rounded-md border bg-white p-4 shadow-sm" dir="rtl">
@@ -44,6 +61,7 @@ export function OrderTable({ orders }: OrderTableProps) {
               <TableHead className="text-right">טלפון</TableHead>
               <TableHead className="text-right">סך הכל</TableHead>
               <TableHead className="text-right">סטטוס</TableHead>
+              <TableHead className="text-right">סטטוס תשלום</TableHead>
               <TableHead className="text-right">תאריך</TableHead>
               <TableHead className="text-right">פעולות</TableHead>
             </TableRow>
@@ -51,7 +69,7 @@ export function OrderTable({ orders }: OrderTableProps) {
           <TableBody>
             {orders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">
+                <TableCell colSpan={9} className="h-24 text-center">
                   לא נמצאו הזמנות.
                 </TableCell>
               </TableRow>
@@ -76,28 +94,36 @@ export function OrderTable({ orders }: OrderTableProps) {
                       {order.status}
                     </span>
                   </TableCell>
+                  <TableCell className="text-right">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-semibold
+                        ${order.paymentStatus === 'שולם' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                      `}
+                    >
+                      {order.paymentStatus}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-right">{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell>
-                    {order.status === 'בהמתנה' && (
-                      <div className="flex justify-start space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleStatusUpdate(order.orderId, 'בוצעה')}
-                          className="bg-green-500 text-white hover:bg-green-600"
-                        >
-                          סמן כבתשלום
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreVertical className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleStatusUpdate(order.orderId, 'בוטלה')}
-                          className="bg-red-500 text-white hover:bg-red-600"
-                        >
-                          בטל
-                        </Button>
-                      </div>
-                    )}
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleStatusUpdate(order.orderId, 'בוצעה')}>
+                          הזמנה בוצעה
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handlePaymentStatusUpdate(order.orderId, 'שולם')}>
+                          הזמנה שולמה
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStatusUpdate(order.orderId, 'בוטלה')}>
+                          ביטול הזמנה
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
@@ -111,6 +137,7 @@ export function OrderTable({ orders }: OrderTableProps) {
           isOpen={!!selectedOrder}
           onClose={() => setSelectedOrder(null)}
           onStatusChange={handleStatusUpdate}
+          onPaymentStatusChange={handlePaymentStatusUpdate}
         />
       )}
     </>
