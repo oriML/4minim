@@ -119,7 +119,7 @@ export function OrderTable({ orders }: OrderTableProps) {
                         <DropdownMenuItem onClick={() => handlePaymentStatusUpdate(order.orderId, 'שולם')}>
                           הזמנה שולמה
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusUpdate(order.orderId, 'בוטלה')}>
+                        <DropdownMenuItem className='bg-red-400 text-red-800' onClick={() => handleStatusUpdate(order.orderId, 'בוטלה')}>
                           ביטול הזמנה
                         </DropdownMenuItem>
                       </DropdownMenuContent>
