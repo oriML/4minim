@@ -32,12 +32,12 @@ export const ProductTable: React.FC<ProductTableProps> = ({ products }) => {
   return (
     <div className="rounded-md border bg-white p-4 shadow-sm">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">Products</h2>
         <Link href="/admin/products/new">
-          <Button className="bg-green-700 text-white hover:bg-green-800">
-            Add Product
+          <Button className="bg-green-700 text-white hover:bg-green-800 cursor-pointer">
+            הוסף מוצר
           </Button>
         </Link>
+        <h2 className="text-2xl font-semibold text-gray-800">מוצרים</h2>
       </div>
       <Table>
         <TableHeader>
