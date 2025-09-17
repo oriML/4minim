@@ -12,13 +12,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({ action, product }) => 
   return (
     <form action={action} className="space-y-6 bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Product Name</label>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700">שם מוצר</label>
         <input
           type="text"
-          name="name"
-          id="name"
+          name="productName_HE"
+          id="productName_HE"
           required
-          defaultValue={product?.name}
+          defaultValue={product?.productName_HE}
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-olive focus:border-olive"
+        />
+      </div>
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700">שם מוצר (באנגלית)</label>
+        <input
+          type="text"
+          name="productName_EN"
+          id="productName_EN"
+          required
+          defaultValue={product?.productName_EN}
           className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-olive focus:border-olive"
         />
       </div>
@@ -50,16 +61,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({ action, product }) => 
         </div>
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700">קטגוריה</label>
-          <select
+          <input
             name="category"
             id="category"
             required
             defaultValue={product?.category}
             className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-olive focus:border-olive"
-          >
-            <option value="custom">Custom</option>
-            <option value="set">Set</option>
-          </select>
+          />
+            {/* <option value="custom">מותאם אישית</option>
+            <option value="set">סט</option>
+          </select> */}
         </div>
       </div>
 
@@ -70,7 +81,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ action, product }) => 
           name="imageUrl"
           id="imageUrl"
           required
-          defaultValue={product?.imageUrl}
+          defaultValue={product?.imageURL}
           className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-olive focus:border-olive"
         />
       </div>

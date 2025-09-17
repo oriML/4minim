@@ -33,18 +33,14 @@ export const CustomSetBuilder: React.FC<CustomSetBuilderProps> = ({ productsByCa
 
   // Effect to handle pre-selected products from localStorage
   useEffect(() => {
-    console.log("CustomSetBuilder useEffect triggered.");
     const preselectedProductsJson = localStorage.getItem('preselectedSetProducts');
-    console.log("preselectedProductsJson:", preselectedProductsJson);
 
     if (preselectedProductsJson) {
       try {
         const preselectedProductsMap: Record<string, { qty: number }> = JSON.parse(preselectedProductsJson);
-        console.log("preselectedProductsMap:", preselectedProductsMap);
         
         // Fetch all products to map IDs to full Product objects
         getProductsAction().then(allProducts => {
-          console.log("All products fetched:", allProducts);
           const newCustomSet: CustomSet = { lulav: null, etrog: null, hadas: null, arava: null };
           
           // Map product IDs from preselectedProductsMap to CustomSet categories
@@ -58,11 +54,8 @@ export const CustomSetBuilder: React.FC<CustomSetBuilderProps> = ({ productsByCa
               }
             }
           });
-          console.log("New custom set after mapping:", newCustomSet);
           setCustomSet(newCustomSet);
-          console.log("stepConfig.length:", stepConfig.length);
           setCurrentStep(stepConfig.length); // Navigate to the summary step
-          console.log("setCurrentStep called with:", stepConfig.length);
         }).catch(e => {
           console.error("Error fetching products in CustomSetBuilder:", e);
         });
@@ -70,7 +63,6 @@ export const CustomSetBuilder: React.FC<CustomSetBuilderProps> = ({ productsByCa
         console.error("Failed to parse preselectedSetProducts from localStorage", e);
       } finally {
         localStorage.removeItem('preselectedSetProducts'); // Clean up localStorage
-        console.log("localStorage item 'preselectedSetProducts' removed.");
       }
     }
   }, []); // Run only once on mount
@@ -103,8 +95,6 @@ export const CustomSetBuilder: React.FC<CustomSetBuilderProps> = ({ productsByCa
   };
 
   const steps = [...productSteps, summaryStep];
-  console.log("Current steps array:", steps);
-  console.log("Current currentStep state:", currentStep);
 
   return (
     <div className="container mx-auto">

@@ -24,10 +24,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold text-center mb-6 text-olive">Admin Login</h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-olive">התחברות למערכת ניהול</h1>
         <form action={formAction} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">מייל</label>
             <input
               type="email"
               name="email"
@@ -55,4 +55,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
 

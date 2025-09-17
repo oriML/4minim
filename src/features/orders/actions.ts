@@ -17,11 +17,11 @@ const mapOrderToUIFormat = (
   customers: Customer[]
 ): UIOrder => {
   const customer = customers.find((c) => c.customerId === order.customerId);
-
+  let totalPrice = 0;
   const enrichedProducts: UIProduct[] = Object.entries(order.products).map(
     ([productId, orderProductData]) => {
       const productInfo = products.find((p) => p.id === productId);
-
+      totalPrice += productInfo?.price ?? 0;
       return {
         ...orderProductData, // Spread dynamic properties (qty, size, color, etc.)
         productId,
@@ -37,6 +37,10 @@ const mapOrderToUIFormat = (
     customerName: customer?.fullName || "Customer not found",
     products: enrichedProducts,
     createdAt: order.createdAt,
+    customerPhone: customer?.phone ?? '',
+    status: order.status,
+    notes: order.notes,
+    totalPrice
   };
 };
 
@@ -48,7 +52,6 @@ const mapOrderToUIFormat = (
 export const getOrderWithProducts = async (
   orderId: string
 ): Promise<UIOrder | null> => {
-  console.log(`Fetching order with ID: ${orderId} from Google Sheets`);
 
   try {
     // Fetch all necessary data from Google Sheets in parallel

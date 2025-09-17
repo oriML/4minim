@@ -221,8 +221,8 @@ const getOrders = async (): Promise<Order[]> => {
     productsJSON: row[2],
     totalPrice: parseFloat(row[3]),
     orderDate: row[4],
-    status: row[5] as 'Pending' | 'Completed',
-    notes: row[6] || '', // Added notes field
+    status: row[5] as 'Pending' | 'Completed' | 'Canceled',
+    notes: row[6] || '',
   }));
 };
 
@@ -274,7 +274,6 @@ const getSets = async (): Promise<Set[]> => {
   }
 
   return values.map((row) => {
-    console.log(`Set Image URL: ${row[5]}`); // Log the image URL
     return ({
       id: row[0],
       title: row[1],

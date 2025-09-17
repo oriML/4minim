@@ -37,11 +37,11 @@ export async function loginAction(prevState: any, formData: FormData) {
     maxAge: 60 * 60 * 24,
   });
 
-  redirect('/dashboard');
+  redirect('/admin/dashboard');
 }
 
 export async function logoutAction() {
   const cookieStore = await cookies();
   cookieStore.delete('auth_token');
-  redirect('/login');
+  redirect('/admin/login');
 }

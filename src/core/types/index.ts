@@ -27,11 +27,11 @@ export interface Customer {
 
 // This type represents the data collected from the customer form
 export interface CustomerInfo {
-    fullName: string;
-    phone: string;
-    email: string;
-    address: string;
-    notes?: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  address: string;
+  notes?: string;
 }
 
 // Type for the shopping cart
@@ -65,6 +65,8 @@ export interface DBOrder {
   customerId: string;
   products: Record<string, OrderProduct>; // JSON object with productId as key
   createdAt: Date;
+  status: 'Pending' | 'Completed' | 'Canceled';
+  notes?: string;
 }
 
 // Enriched product data for the UI
@@ -83,5 +85,6 @@ export interface UIOrder {
   products: UIProduct[];
   totalPrice: number;
   createdAt: Date;
+  notes?: string;
   status: 'Pending' | 'Completed' | 'Canceled';
 }

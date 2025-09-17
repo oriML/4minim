@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -12,21 +12,34 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { getAuthTokenClient } from '@/core/auth/clientAuth';
 
 interface NavLink {
   href: string;
   label: string;
 }
 
-const navLinks: NavLink[] = [
-  { href: '/buy-products', label: 'קנה מוצרים' },
-  { href: '/build-a-set', label: 'בנה סט' },
-  { href: '/sets', label: 'סטים' },
-  { href: '/login', label: 'כניסת מנהלים' },
-];
-
 export const BaseLayout = ({ children }: { children: React.ReactNode }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const token = getAuthTokenClient();
+    if (token) {
+      // In a real application, you would also validate the token (e.g., check expiration)
+      // For now, just checking for presence is enough to assume admin status for redirection
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, []);
+
+  const navLinks: NavLink[] = [
+    { href: '/buy-products', label: 'קנה מוצרים' },
+    { href: '/build-a-set', label: 'בנה סט' },
+    { href: '/sets', label: 'סטים' },
+    { href: '/admin/login', label: 'כניסת מנהלים' },
+  ];
 
   return (
     <div className="min-h-screen text-gray-800 flex flex-col">
