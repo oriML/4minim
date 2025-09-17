@@ -32,9 +32,9 @@ export function SummaryDashboard({ orders, products }: SummaryDashboardProps) {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" dir="rtl">
-      <Card title="סך כל ההזמנות" value={totalOrders} />
-      <Card title="מוצרים שנמכרו" value={totalProductsSold} />
-      <Card title="לקוחות ייחודיים" value={uniqueCustomers} />
+      <Card title="סך כל ההזמנות" value={totalOrders || 0} />
+      <Card title="מוצרים שנמכרו" value={totalProductsSold || 0} />
+      <Card title="לקוחות ייחודיים" value={uniqueCustomers || 0} />
       <Card title="פירוט לפי קטגוריות">
         <ul className="text-sm text-gray-600">
           {Object.entries(categoryBreakdown).map(([category, count]) => (
