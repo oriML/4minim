@@ -13,6 +13,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface ProductTableProps {
   products: Product[];
@@ -53,29 +60,33 @@ export const ProductTable: React.FC<ProductTableProps> = ({ products }) => {
           {products.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="h-24 text-center">
-                No products found.
+                לא נמצאו מוצרים
               </TableCell>
             </TableRow>
           ) : (
             products.map((product) => (
               <TableRow key={product.id} className="border-b last:border-b-0 hover:bg-gray-50">
-                <TableCell>
-                  <div className="flex justify-center space-x-2">
-                    <Link href={`/admin/products/${product.id}/edit`}>
-                      <Button variant="outline" size="sm" className="text-blue-600 border-blue-600 hover:bg-blue-50">
-                        ערוך
+                <TableCell className='text-center'>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0 cursor-pointer">
+                        <span className="sr-only">פתח תפריט</span>
+                        <MoreVertical className="h-4 w-4" />
                       </Button>
-                    </Link>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(product.id)}
-                      disabled={isPending}
-                      className="text-red-600 border-red-600 hover:bg-red-50"
-                    >
-                      {isPending ? 'מוחק...' : 'מחק'}
-                    </Button>
-                  </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Link href={`/admin/products/${product.id}/edit`} className="flex items-center text-yellow-400">
+                          <span>ערוך</span>
+                          <Pencil className="ml-2 h-4 w-4" />
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDelete(product.id)} disabled={isPending} className="text-red-600">
+                        <span>{isPending ? 'מוחק...' : 'מחק'}</span>
+                        <Trash2 className="ml-2 h-4 w-4" />
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
                 <TableCell className="text-center">₪{product.price.toFixed(2)}</TableCell>
                 <TableCell className="text-center">{product.category}</TableCell>
