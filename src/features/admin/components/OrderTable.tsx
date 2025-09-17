@@ -61,7 +61,7 @@ export function OrderTable({ orders }: OrderTableProps) {
               <TableHead className="text-right">טלפון</TableHead>
               <TableHead className="text-right">סך הכל</TableHead>
               <TableHead className="text-right">סטטוס</TableHead>
-              <TableHead className="text-right">סטטוס תשלום</TableHead>
+              <TableHead className="w-[100px] text-right">סטטוס תשלום</TableHead>
               <TableHead className="text-right">תאריך</TableHead>
               <TableHead className="text-right">פעולות</TableHead>
             </TableRow>
@@ -84,7 +84,7 @@ export function OrderTable({ orders }: OrderTableProps) {
                   <TableCell className="font-medium text-right">{order.orderId}</TableCell>
                   <TableCell className="text-right">{order.customerName}</TableCell>
                   <TableCell className="text-right">{order.customerPhone}</TableCell>
-                  <TableCell className="text-right">${order.totalPrice.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">₪{order.totalPrice.toFixed(2)}</TableCell>
                   <TableCell className="text-right">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-semibold
@@ -97,18 +97,17 @@ export function OrderTable({ orders }: OrderTableProps) {
                   <TableCell className="text-right">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-semibold
-                        ${order.paymentStatus === 'שולם' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
                       `}
                     >
-                      {order.paymentStatus}
+                      {order.paymentStatus === 'שולם' ? '✅' : '❌'}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
+                        <Button variant="ghost" className="h-8 w-8 p-0 cursor-pointer">
+                          <span className="sr-only">פתח תפריט</span>
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>

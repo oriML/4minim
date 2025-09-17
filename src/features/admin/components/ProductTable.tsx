@@ -77,7 +77,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({ products }) => {
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell className="text-center">${product.price.toFixed(2)}</TableCell>
+                <TableCell className="text-center">₪{product.price.toFixed(2)}</TableCell>
                 <TableCell className="text-center">{product.category}</TableCell>
                 <TableCell className="text-center">{product.productName_HE}</TableCell>
                 <TableCell className="font-medium text-right">{product.id}</TableCell>
