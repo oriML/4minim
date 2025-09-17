@@ -39,6 +39,7 @@ const mapOrderToUIFormat = (
     createdAt: order.createdAt,
     customerPhone: customer?.phone ?? '',
     status: order.status,
+    paymentStatus: order.paymentStatus,
     notes: order.notes,
     totalPrice
   };

@@ -1,16 +1,28 @@
 'use client';
 
 import { Product } from '@/core/types';
-import React from 'react';
+import React, { useState } from 'react';
+import { ImageViewer } from '@/components/ui/ImageViewer';
 
 interface ProductFormProps {
   action: (formData: FormData) => void;
   product?: Product;
+  productId?: string; // Add productId as an optional prop
 }
 
-export const ProductForm: React.FC<ProductFormProps> = ({ action, product }) => {
+export const ProductForm: React.FC<ProductFormProps> = ({ action, product, productId }) => {
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+
+  const handleSubmit = async (formData: FormData) => {
+    if (selectedImageFile) {
+      formData.append('image', selectedImageFile);
+    }
+    await action(formData);
+  };
+
   return (
-    <form action={action} className="space-y-6 bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto">
+    <form action={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto">
+      {productId && <input type="hidden" name="productId" value={productId} />}
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">שם מוצר</label>
         <input
@@ -75,21 +87,21 @@ export const ProductForm: React.FC<ProductFormProps> = ({ action, product }) => 
       </div>
 
       <div>
-        <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">כתובת תמונה</label>
-        <input
-          type="text"
-          name="imageUrl"
-          id="imageUrl"
-          required
-          defaultValue={product?.imageURL}
-          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-olive focus:border-olive"
+        <label className="block text-sm font-medium text-gray-700 mb-2">תמונת מוצר</label>
+        <ImageViewer
+          initialImageUrl={product?.imageURL}
+          onImageSelect={setSelectedImageFile}
         />
+        {/* Hidden input for imageUrl to ensure it's always present in formData, even if no new image is selected */}
+        {!selectedImageFile && product?.imageURL && (
+          <input type="hidden" name="imageUrl" value={product.imageURL} />
+        )}
       </div>
 
       <div className="flex justify-end">
         <button
           type="submit"
-          className="bg-green-700 text-white font-bold py-2 px-6 rounded-md hover:bg-opacity-90 transition-colors"
+          className="bg-green-700 text-white font-bold cursor-pointer py-2 px-6 rounded-md hover:bg-opacity-90 transition-colors"
         >
           {product ? 'עדכן מוצר' : 'הוסף מוצר'}
         </button>
