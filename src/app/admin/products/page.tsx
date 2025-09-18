@@ -1,10 +1,11 @@
 import { googleSheetService } from '@/services/google-sheets';
 import { ProductTable } from '@/features/admin/components/ProductTable';
+import { productService } from '@/features/products/service';
 
 export const revalidate = 0; // Make it dynamic
 
 async function AdminProductsPage() {
-  const products = await googleSheetService.getProducts();
+  const products = await productService.getProducts();
 
   return (
     <div>

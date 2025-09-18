@@ -1,4 +1,3 @@
-import { googleSheetService } from '@/services/google-sheets';
 import { Product, Order, Customer, UIOrder, OrderProduct, UIProduct } from '@/core/types';
 import { ProductTable } from '@/features/admin/components/ProductTable';
 import { OrderTable } from '@/features/admin/components/OrderTable';
@@ -9,14 +8,17 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { productService } from '@/features/products/service';
+import { orderService } from '@/features/orders/service';
+import { customerService } from '@/features/customers/service';
 
 export const revalidate = 0; // Make it dynamic
 
 async function AdminDashboardPage() {
   const [products, orders, customers] = await Promise.all([
-    googleSheetService.getProducts(),
-    googleSheetService.getOrders(),
-    googleSheetService.getCustomers(),
+    productService.getProducts(),
+    orderService.getOrders(),
+    customerService.getCustomers(),
   ]);
 
   const uiOrders: UIOrder[] = orders.map((order: Order) => {

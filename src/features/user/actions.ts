@@ -1,8 +1,9 @@
 'use server';
 
-import { googleSheetService } from '@/services/google-sheets';
 import type { Order, CustomerInfo, Product } from '@/core/types';
 import { redirect } from 'next/navigation';
+import { customerService } from '@/features/customers/service';
+import { orderService } from '@/features/orders/service';
 
 // Define the shape of the custom set object
 interface CustomSet {
@@ -16,7 +17,7 @@ export async function createCustomSetOrder(set: CustomSet, customerInfo: Custome
   let newOrderId;
   try {
     // 1. Find or create the customer
-    let customer = (await googleSheetService.getCustomers()).find(
+    let customer = (await customerService.getCustomers()).find(
       (c) => c.phone === customerInfo.phone
     );
 
@@ -27,7 +28,7 @@ export async function createCustomSetOrder(set: CustomSet, customerInfo: Custome
         email: customerInfo.email,
         address: customerInfo.address
       };
-      customer = await googleSheetService.addCustomer(customerData);
+      customer = await customerService.createCustomer(customerData);
     }
 
     // 2. Calculate total price and prepare products JSON from the CustomSet
@@ -40,7 +41,7 @@ export async function createCustomSetOrder(set: CustomSet, customerInfo: Custome
     });
 
     // 3. Create the complete order object
-    const orderData: Omit<Order, 'orderId' | 'orderDate' | 'status'> = {
+    const orderData: Omit<Order, 'orderId' | 'orderDate' | 'status' | 'userId'> = {
       customerId: customer.customerId,
       productsJSON: JSON.stringify(productsInOrder),
       totalPrice: totalPrice,
@@ -48,12 +49,15 @@ export async function createCustomSetOrder(set: CustomSet, customerInfo: Custome
     };
 
     // 4. Add the order using the generic addOrder function
-    const newOrder = await googleSheetService.addOrder(orderData);
+    const newOrder = await orderService.createOrder(orderData);
     newOrderId = newOrder.orderId;
     // 5. Redirect to the confirmation page
 
   } catch (error) {
     console.error('Failed to create custom set order:', error);
+    if (error instanceof Error && error.message.includes('User ID not found')) {
+      redirect('/admin/login');
+    }
     if (error instanceof Error) {
       throw new Error(`Failed to create custom set order: ${error.message}`);
     }

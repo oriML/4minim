@@ -2,6 +2,7 @@
 
 import { Product } from "@/core/types";
 import { googleSheetService } from "@/services/google-sheets";
+import { productService } from "./service";
 
 export type ProductsByCategory = Record<string, Product[]>;
 
@@ -11,7 +12,7 @@ export type ProductsByCategory = Record<string, Product[]>;
  */
 export const getProductsAction = async (): Promise<Product[]> => {
   try {
-    const products = await googleSheetService.getProducts();
+    const products = await productService.getProducts();
     return products;
   } catch (error) {
     console.error("Failed to fetch products:", error);
@@ -25,7 +26,7 @@ export const getProductsAction = async (): Promise<Product[]> => {
  */
 export const getProductsByCategory = async (): Promise<ProductsByCategory> => {
   try {
-    const products = await googleSheetService.getProducts();
+    const products = await productService.getProducts();
 
     // Group products by category
     const productsByCategory = products.reduce<ProductsByCategory>((acc, product) => {

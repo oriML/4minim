@@ -28,7 +28,7 @@ export async function loginAction(prevState: any, formData: FormData) {
     return { error: 'Invalid email or password' };
   }
 
-  const token = await signToken({ email: user.email, role: user.role });
+  const token = await signToken({ email: user.email, role: user.role, userId: user.userId });
   cookieStore.set('auth_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

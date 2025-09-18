@@ -1,14 +1,16 @@
 'use server';
 
 import { Cart, CustomerInfo, Order } from '@/core/types';
-import { googleSheetService } from '@/services/google-sheets';
 import { redirect } from 'next/navigation';
+import { customerService } from '@/features/customers/service';
+import { productService } from '@/features/products/service';
+import { orderService } from '@/features/orders/service';
 
 export async function createSingleProductOrder(cart: Cart, customerInfo: CustomerInfo) {
   let newOrderId;
   try {
     // 1. Find or create the customer
-    let customer = (await googleSheetService.getCustomers()).find(
+    let customer = (await customerService.getCustomers()).find(
       (c) => c.phone === customerInfo.phone
     );
 
@@ -20,11 +22,11 @@ export async function createSingleProductOrder(cart: Cart, customerInfo: Custome
         email: customerInfo.email,
         address: customerInfo.address
       };
-      customer = await googleSheetService.addCustomer(customerData);
+      customer = await customerService.createCustomer(customerData);
     }
 
     // 2. Calculate total price and prepare products JSON
-    const products = await googleSheetService.getProducts();
+    const products = await productService.getProducts();
     let totalPrice = 0;
     const productsInOrder: Record<string, { qty: number }> = {};
 
@@ -41,7 +43,7 @@ export async function createSingleProductOrder(cart: Cart, customerInfo: Custome
     }
 
     // 3. Create the complete order object, including notes
-    const orderData: Omit<Order, 'orderId' | 'orderDate' | 'status'> = {
+    const orderData: Omit<Order, 'orderId' | 'orderDate' | 'status' | 'userId'> = {
       customerId: customer.customerId,
       productsJSON: JSON.stringify(productsInOrder),
       totalPrice: totalPrice,
@@ -49,12 +51,15 @@ export async function createSingleProductOrder(cart: Cart, customerInfo: Custome
     };
 
     // 4. Add the order using the generic addOrder function
-    const newOrder = await googleSheetService.addOrder(orderData);
+    const newOrder = await orderService.createOrder(orderData);
     newOrderId = newOrder.orderId;
     // The redirect needs to be called outside the try/catch block
 
   } catch (error) {
     console.error('Failed to create single product order:', error);
+    if (error instanceof Error && error.message.includes('User ID not found')) {
+      redirect('/admin/login');
+    }
     if (error instanceof Error) {
       throw new Error(`Failed to create single product order: ${error.message}`);
     }

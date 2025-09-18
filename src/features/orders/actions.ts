@@ -1,7 +1,9 @@
 'use server';
 
 import { DBOrder, UIOrder, UIProduct, Order, Product, Customer } from "@/core/types";
-import { googleSheetService } from "@/services/google-sheets";
+import { orderService } from '@/features/orders/service';
+import { productService } from '@/features/products/service';
+import { customerService } from '@/features/customers/service';
 
 /**
  * Helper function to transform a raw database order and its associated products
@@ -57,9 +59,9 @@ export const getOrderWithProducts = async (
   try {
     // Fetch all necessary data from Google Sheets in parallel
     const [orders, allProducts, allCustomers] = await Promise.all([
-      googleSheetService.getOrders(),
-      googleSheetService.getProducts(),
-      googleSheetService.getCustomers(),
+      orderService.getOrders(),
+      productService.getProducts(),
+      customerService.getCustomers(),
     ]);
 
     const orderFromSheet = orders.find((o) => o.orderId === orderId);

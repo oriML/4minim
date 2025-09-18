@@ -1,8 +1,8 @@
-import { googleSheetService } from '@/services/google-sheets';
 import { ProductForm } from '@/features/admin/components/ProductForm';
 import { updateProductAction } from '@/features/admin/actions';
 import { notFound } from 'next/navigation';
 import { Product } from '@/core/types';
+import { productService } from '@/features/products/service';
 
 interface PageProps {
   params: { productId: string };
@@ -10,7 +10,7 @@ interface PageProps {
 }
 
 async function EditProductPage({ params }: PageProps) {
-  const products = await googleSheetService.getProducts();
+  const products = await productService.getProducts();
   const product = products.find(p => p.id === params.productId);
 
   if (!product) {

@@ -1,8 +1,8 @@
-import { getSetsAction } from '@/features/sets/actions';
 import { SetsClientPage } from './SetsClientPage';
+import { setService } from '@/features/sets/service';
 
 export default async function Page() {
-  const sets = await getSetsAction();
+  const sets = await setService.getSets();
 
   return <SetsClientPage sets={sets} />;
 }

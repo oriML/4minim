@@ -1,5 +1,6 @@
 export interface Product {
   id: string; // ID (string, unique)
+  userId: string; // UserID (string, FK to Users.userId)
   category: string; // Category (string)
   productName_EN: string; // ProductName_EN (string)
   productName_HE: string; // ProductName_HE (string)
@@ -19,6 +20,7 @@ export interface User {
 
 export interface Customer {
   customerId: string; // CustomerID (string, unique, e.g. CUST001)
+  userId: string; // UserID (string, FK to Users.userId)
   fullName: string; // FullName (string)
   phone: string; // Phone (string, unique identifier for customer existence)
   email: string; // Email (string)
@@ -43,6 +45,7 @@ export interface Cart {
 
 export interface Order {
   orderId: string; // OrderID (string, unique, e.g. ORD001)
+  userId: string; // UserID (string, FK to Users.userId)
   customerId: string; // CustomerID (string, FK to Customers.CustomerID)
   productsJSON: string; // ProductsJSON (stringified JSON)
   totalPrice: number; // TotalPrice (number)
