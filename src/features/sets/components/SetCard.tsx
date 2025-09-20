@@ -16,7 +16,7 @@ export const SetCard: React.FC<SetCardProps> = ({ set }) => {
     // Save productsJson to localStorage
     localStorage.setItem('preselectedSetProducts', JSON.stringify(set.productsJson));
     // Navigate to the build-a-set page
-    router.push('/build-a-set');
+    router.push('/buy-products');
   };
 
   return (

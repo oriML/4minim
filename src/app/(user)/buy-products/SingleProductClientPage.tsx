@@ -13,6 +13,19 @@ interface SingleProductClientPageProps {
 export function SingleProductClientPage({ products }: SingleProductClientPageProps) {
   const [cart, setCart] = useState<{ [productId: string]: { qty: number } }>({});
 
+  useEffect(() => {
+    const preselectedSetProducts = localStorage.getItem('preselectedSetProducts');
+    if (preselectedSetProducts) {
+      try {
+        const parsedProducts = JSON.parse(preselectedSetProducts);
+        setCart(parsedProducts);
+        localStorage.removeItem('preselectedSetProducts'); // Clear after use
+      } catch (e) {
+        console.error("Failed to parse preselectedSetProducts from localStorage", e);
+      }
+    }
+  }, []);
+
   const updateQty = (productId: string, qty: number) => {
     setCart((prev) => {
       const newCart = { ...prev };

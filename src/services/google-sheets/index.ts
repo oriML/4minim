@@ -367,21 +367,38 @@ const getSets = async (userId: string | null): Promise<Set[]> => {
     return [];
   }
 
+  const allProducts = await getAllProductsRaw(); // Fetch all products to calculate set price if needed
+
   const sets = values.map((row) => {
+    const productsJson = (() => {
+      try {
+        return JSON.parse(row[4] || '{}');
+      } catch (e) {
+        console.warn(`Invalid JSON in productsJson for set ID ${row[0]}:`, row[4], e);
+        return {}; // Default to empty object on error
+      }
+    })();
+
+    let calculatedPrice = 0;
+    // Calculate price from products if set.price is not provided or is 0
+    if (!row[5] || parseFloat(row[5]) === 0) {
+      for (const productId in productsJson) {
+        const productDetails = allProducts.find(p => p.id === productId);
+        if (productDetails) {
+          calculatedPrice += productDetails.price * productsJson[productId].qty;
+        }
+      }
+    } else {
+      calculatedPrice = parseFloat(row[5]);
+    }
+
     return ({
       id: row[0],
       userId: row[1],
       title: row[2],
       description: row[3],
-      productsJson: (() => {
-        try {
-          return JSON.parse(row[4] || '{}');
-        } catch (e) {
-          console.warn(`Invalid JSON in productsJson for set ID ${row[0]}:`, row[4], e);
-          return {}; // Default to empty object on error
-        }
-      })(),
-      price: parseFloat(row[5]),
+      productsJson: productsJson,
+      price: calculatedPrice,
       imageUrl: row[6],
     });
   });
