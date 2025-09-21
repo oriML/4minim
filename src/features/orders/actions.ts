@@ -90,3 +90,26 @@ export const getOrderWithProducts = async (
   }
 };
 
+export const updateOrderPaymentStatus = async (
+  orderId: string,
+  paymentStatus: 'שולם' | 'לא שולם'
+): Promise<UIOrder | null> => {
+  try {
+    const updatedOrder = await orderService.updateOrder(orderId, { paymentStatus });
+    // Re-fetch the full UIOrder to ensure all derived data is correct
+    const [allProducts, allCustomers] = await Promise.all([
+      productService.getProducts(),
+      customerService.getCustomers(),
+    ]);
+    const dbOrder: DBOrder = {
+      ...updatedOrder,
+      products: JSON.parse(updatedOrder.productsJSON || '{}'),
+      createdAt: new Date(updatedOrder.orderDate),
+    };
+    return mapOrderToUIFormat(dbOrder, allProducts, allCustomers);
+  } catch (error) {
+    console.error(`Failed to update payment status for order ${orderId}:`, error);
+    return null;
+  }
+};
+
