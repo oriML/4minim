@@ -13,35 +13,37 @@ export function withUserContext<R>(context: UserContext, callback: () => R): R {
   return userContext.run(context, callback);
 }
 
-export async function getUserId(): Promise<string | null> {
+export async function getUser(): Promise<User | null> {
   let store = userContext.getStore();
   if (store?.userId) {
-    return store.userId;
+    // If userId is in store, we might need to fetch full user details if not already stored
+    // For now, we'll re-verify token to get full user object
   }
 
-  // If userId not in AsyncLocalStorage, try to get it from the cookie
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
 
   if (token) {
     try {
       const user = await verifyToken<User>(token);
-      if (user?.userId) {
-        // If userId found from token, set it in AsyncLocalStorage for this request
-        // This is a bit tricky as we are already inside a context. 
-        // The middleware should ideally set it. This is a fallback.
-        // For subsequent calls within the same request, it will be in the store.
-        userContext.enterWith({ userId: user.userId });
-        return user.userId;
+      if (user) {
+        userContext.enterWith({ userId: user.userId }); // Ensure userId is in context
+        return user;
       }
     } catch (error) {
-      console.error("Error verifying token in getUserId:", error);
-      // Token invalid, clear it
+      console.error("Error verifying token in getUser:", error);
       cookieStore.delete('auth_token');
     }
   }
 
-  return 'USR001';
+  // Fallback for development or unauthenticated users
+  // In a real app, this might return null or throw an error
+  return { userId: 'USR001', username: 'Guest', email: 'guest@example.com', passwordHash: '', role: 'user', status: 'active' };
+}
+
+export async function getUserId(): Promise<string | null> {
+  const user = await getUser();
+  return user?.userId || null;
 }
 
 export async function getRequiredUserId(): Promise<string> {

@@ -4,6 +4,7 @@ import { DBOrder, UIOrder, UIProduct, Order, Product, Customer } from "@/core/ty
 import { orderService } from '@/features/orders/service';
 import { productService } from '@/features/products/service';
 import { customerService } from '@/features/customers/service';
+import { whatsappClient } from '@/services/whatsappClient'; // New import
 
 /**
  * Helper function to transform a raw database order and its associated products
@@ -113,3 +114,20 @@ export const updateOrderPaymentStatus = async (
   }
 };
 
+export const sendWhatsAppNotification = async (
+  to: string,
+  message: string,
+  orderId: string, // For logging/context
+  type: 'seller_notification' | 'customer_status_update'
+) => {
+  try {
+    await whatsappClient.sendWhatsAppMessage({
+      to,
+      type: 'text',
+      text: { body: message },
+    });
+    console.log(`WhatsApp ${type} sent for order ${orderId} to ${to}.`);
+  } catch (error) {
+    console.error(`Failed to send WhatsApp ${type} for order ${orderId} to ${to}:`, error);
+  }
+};
