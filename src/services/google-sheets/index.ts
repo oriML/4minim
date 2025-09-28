@@ -37,7 +37,7 @@ const getProducts = async (userId: string | null): Promise<Product[]> => {
 const getUsers = async (): Promise<User[]> => {
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${USERS_SHEET_NAME}!A2:F`,
+    range: `${USERS_SHEET_NAME}!A2:G`,
   });
 
   const values = response.data.values;
@@ -52,7 +52,33 @@ const getUsers = async (): Promise<User[]> => {
     passwordHash: row[3],
     role: row[4] as 'admin' | 'user',
     status: row[5],
+    deliveryFee: row[6] ? parseFloat(row[6]) : 0,
   }));
+};
+
+const getUserByEmail = async (email: string): Promise<User | null> => {
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${USERS_SHEET_NAME}!A2:G`,
+
+  });
+
+  const values = response.data.values;
+  if (!values) {
+    return null;
+  }
+
+  const users = values.map((row) => ({
+    userId: row[0],
+    username: row[1],
+    email: row[2],
+    passwordHash: row[3],
+    role: row[4] as 'admin' | 'user',
+    status: row[5],
+    deliveryFee: row[6] ? parseFloat(row[6]) : 0,
+  }));
+
+  return users.filter(u => u.email === email)[0];
 };
 
 const addProduct = async (product: Omit<Product, 'id' | 'userId'>, userId: string): Promise<Product> => {
@@ -517,6 +543,7 @@ export const googleSheetService = {
   updateOrder,
   getAllOrdersRaw,
   getUsers,
+  getUserByEmail,
   getSets,
   addSet,
   updateSet,

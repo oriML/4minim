@@ -16,6 +16,7 @@ export interface User {
   passwordHash: string;
   role: 'admin' | 'user';
   status: string;
+  deliveryFee?: number;
 }
 
 export interface Customer {

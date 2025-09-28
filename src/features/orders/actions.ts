@@ -122,4 +122,17 @@ export const updateOrderDeliveryRequired = async (
   }
 };
 
+import { getUser } from '@/core/utils/user-context';
+import { googleSheetService } from "@/services/google-sheets";
 
+/**
+ * Server Action: Fetches the delivery fee from the current user's data.
+ * @returns A promise that resolves to the delivery fee amount.
+ */
+export const getDeliveryFeeAction = async (): Promise<number> => {
+  const email = (await getUser())?.email;
+  if (!email) return 0;
+
+  const user = await googleSheetService.getUserByEmail(email);
+  return user?.deliveryFee ?? 0;
+};

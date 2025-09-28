@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { CustomSet } from './CustomSetBuilder';
-import { createCustomSetOrder } from '../actions'; // We will create this action
+import { createCustomSetOrder } from '../actions';
+import { getDeliveryFeeAction } from '@/features/orders/actions';
 import { CustomerInfo, Product } from '@/core/types';
 
 interface StepSummaryProps {
@@ -19,18 +20,32 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
     deliveryRequired: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchFee = async () => {
+      const fee = await getDeliveryFeeAction();
+      setDeliveryFee(fee);
+    };
+    fetchFee();
+  }, []);
 
   const selectedProducts = useMemo(() => {
     return Object.values(set).filter(p => p !== null) as Product[];
   }, [set]);
 
   const total = useMemo(() => {
-    return selectedProducts.reduce((acc, product) => acc + product.price, 0);
-  }, [selectedProducts]);
+    const productsTotal = selectedProducts.reduce((acc, product) => acc + product.price, 0);
+    return customerInfo.deliveryRequired ? productsTotal + deliveryFee : productsTotal;
+  }, [selectedProducts, customerInfo.deliveryRequired, deliveryFee]);
 
   const handleConfirmOrder = async () => {
     if (!customerInfo.fullName || !customerInfo.phone) {
       alert('אנא מלאו שם מלא וטלפון.');
+      return;
+    }
+    if (customerInfo.deliveryRequired && !customerInfo.address) {
+      alert('אנא מלאו כתובת למשלוח.');
       return;
     }
     if (selectedProducts.length === 0) {
@@ -39,10 +54,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
     }
 
     setIsSubmitting(true);
-    // The server action will handle success (redirect) or throw an error.
-    // The try/catch is removed to allow the redirect to work correctly.
     await createCustomSetOrder(set, customerInfo);
-    // No need to set isSubmitting to false here, as the page will redirect.
   };
 
   return (
@@ -62,6 +74,12 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
             </ul>
           ) : (
             <p className="text-center text-gray-500 mb-6">לא נבחרו מוצרים.</p>
+          )}
+          {customerInfo.deliveryRequired && (
+            <div className="border-t-2 border-dashed border-brand-brown pt-4 flex justify-between items-center font-medium text-brand-dark">
+              <span>דמי משלוח:</span>
+              <span>₪{deliveryFee.toFixed(2)}</span>
+            </div>
           )}
           <div className="border-t-2 border-dashed border-brand-brown pt-4 flex justify-between items-center font-bold text-2xl text-brand-dark">
             <span>סה"כ:</span>
@@ -87,7 +105,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
               className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
             />
             <label htmlFor="delivery-checkbox" className="mr-2 text-sm font-medium text-gray-900">
-              דרוש משלוח
+              דרוש משלוח {deliveryFee > 0 && `(תוספת ${deliveryFee}₪)`}
             </label>
           </div>
           <div className="text-center mt-6">
