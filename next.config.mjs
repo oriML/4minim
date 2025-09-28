@@ -6,6 +6,11 @@ const nextConfig = {
   images: {
     domains: ['drive.google.com', 'lh3.googleusercontent.com', 'res.cloudinary.com'],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '3mb',
+    }
+  }
 };
 
 export default nextConfig;

@@ -46,6 +46,7 @@ export async function createCustomSetOrder(set: CustomSet, customerInfo: Custome
       productsJSON: JSON.stringify(productsInOrder),
       totalPrice: totalPrice,
       notes: customerInfo.notes,
+      deliveryRequired: customerInfo.deliveryRequired,
     };
 
     // 4. Add the order using the generic addOrder function

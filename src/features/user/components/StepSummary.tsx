@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { CustomSet } from './CustomSetBuilder';
-import { createCustomSetOrder } from '../actions'; // We will create this action
+import { createCustomSetOrder } from '../actions';
+import { getDeliveryFeeAction } from '@/features/orders/actions';
 import { CustomerInfo, Product } from '@/core/types';
 
 interface StepSummaryProps {
@@ -16,20 +17,35 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
     email: '',
     address: '',
     notes: '',
+    deliveryRequired: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchFee = async () => {
+      const fee = await getDeliveryFeeAction();
+      setDeliveryFee(fee);
+    };
+    fetchFee();
+  }, []);
 
   const selectedProducts = useMemo(() => {
     return Object.values(set).filter(p => p !== null) as Product[];
   }, [set]);
 
   const total = useMemo(() => {
-    return selectedProducts.reduce((acc, product) => acc + product.price, 0);
-  }, [selectedProducts]);
+    const productsTotal = selectedProducts.reduce((acc, product) => acc + product.price, 0);
+    return customerInfo.deliveryRequired ? productsTotal + deliveryFee : productsTotal;
+  }, [selectedProducts, customerInfo.deliveryRequired, deliveryFee]);
 
   const handleConfirmOrder = async () => {
     if (!customerInfo.fullName || !customerInfo.phone) {
       alert('אנא מלאו שם מלא וטלפון.');
+      return;
+    }
+    if (customerInfo.deliveryRequired && !customerInfo.address) {
+      alert('אנא מלאו כתובת למשלוח.');
       return;
     }
     if (selectedProducts.length === 0) {
@@ -38,10 +54,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
     }
 
     setIsSubmitting(true);
-    // The server action will handle success (redirect) or throw an error.
-    // The try/catch is removed to allow the redirect to work correctly.
     await createCustomSetOrder(set, customerInfo);
-    // No need to set isSubmitting to false here, as the page will redirect.
   };
 
   return (
@@ -62,6 +75,12 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
           ) : (
             <p className="text-center text-gray-500 mb-6">לא נבחרו מוצרים.</p>
           )}
+          {customerInfo.deliveryRequired && (
+            <div className="border-t-2 border-dashed border-brand-brown pt-4 flex justify-between items-center font-medium text-brand-dark">
+              <span>דמי משלוח:</span>
+              <span>₪{deliveryFee.toFixed(2)}</span>
+            </div>
+          )}
           <div className="border-t-2 border-dashed border-brand-brown pt-4 flex justify-between items-center font-bold text-2xl text-brand-dark">
             <span>סה"כ:</span>
             <span>₪{total.toFixed(2)}</span>
@@ -76,6 +95,18 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
             <input type="tel" placeholder="טלפון*" value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition" />
             <input type="text" placeholder="כתובת למשלוח" value={customerInfo.address} onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition" />
             <textarea placeholder="הערות (אופציונלי)" value={customerInfo.notes} onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition" rows={3}></textarea>
+          </div>
+          <div className="mt-4 flex items-center">
+            <input
+              id="delivery-checkbox"
+              type="checkbox"
+              checked={customerInfo.deliveryRequired}
+              onChange={(e) => setCustomerInfo({ ...customerInfo, deliveryRequired: e.target.checked })}
+              className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
+            />
+            <label htmlFor="delivery-checkbox" className="mr-2 text-sm font-medium text-gray-900">
+              דרוש משלוח {deliveryFee > 0 && `(תוספת ${deliveryFee}₪)`}
+            </label>
           </div>
           <div className="text-center mt-6">
             <button onClick={handleConfirmOrder} disabled={isSubmitting || selectedProducts.length === 0} className="w-full px-4 py-3 rounded-lg bg-green-800 cursor-pointer text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">

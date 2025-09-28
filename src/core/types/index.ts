@@ -6,7 +6,7 @@ export interface Product {
   productName_HE: string; // ProductName_HE (string)
   description: string; // Description (string)
   price: number; // Price (number)
-  imageURL: string; // ImageURL (string)
+  imageUrl: string; // ImageURL (string)
 }
 
 export interface User {
@@ -16,6 +16,7 @@ export interface User {
   passwordHash: string;
   role: 'admin' | 'user';
   status: string;
+  deliveryFee?: number;
 }
 
 export interface Customer {
@@ -34,6 +35,7 @@ export interface CustomerInfo {
   email: string;
   address: string;
   notes?: string;
+  deliveryRequired: boolean;
 }
 
 // Type for the shopping cart
@@ -52,6 +54,7 @@ export interface Order {
   orderDate: string; // OrderDate (ISO string)
   status: 'בהמתנה' | 'בוצעה' | 'בוטלה'; // Status (string: Pending/Completed)
   paymentStatus: 'שולם' | 'לא שולם';
+  deliveryRequired: boolean; // New: Indicates if delivery is required
   notes?: string; // Optional notes for the order
 }
 
@@ -71,6 +74,7 @@ export interface DBOrder {
   createdAt: Date;
   status: 'בהמתנה' | 'בוצעה' | 'בוטלה';
   paymentStatus: 'שולם' | 'לא שולם';
+  deliveryRequired: boolean; // New: Indicates if delivery is required
   notes?: string;
 }
 
@@ -87,10 +91,12 @@ export interface UIOrder {
   customerId: string;
   customerName: string;
   customerPhone: string;
+  customerAddress: string; // New: Customer's address
   products: UIProduct[];
   totalPrice: number;
   createdAt: Date;
   notes?: string;
   status: 'בהמתנה' | 'בוצעה' | 'בוטלה';
   paymentStatus: 'שולם' | 'לא שולם';
+  deliveryRequired: boolean; // New: Indicates if delivery is required
 }

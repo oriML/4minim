@@ -1,7 +1,7 @@
 import cloudinary from '@/core/config/cloudinary';
 import { googleSheetService } from '@/services/google-sheets';
 
-async function uploadProductImage(file: File, productId: string): Promise<string> {
+async function uploadProductImage(file: File, productId: string, userId: string): Promise<string> {
   const fileBuffer = await file.arrayBuffer();
   const mimeType = file.type;
   const encoding = 'base64';
@@ -12,7 +12,7 @@ async function uploadProductImage(file: File, productId: string): Promise<string
     folder: 'products',
   });
 
-  await googleSheetService.updateProduct(productId, { imageURL: result.secure_url });
+  await googleSheetService.updateProduct(productId, { imageUrl: result.secure_url }, userId);
 
   return result.secure_url;
 }

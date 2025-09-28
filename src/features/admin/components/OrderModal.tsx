@@ -51,17 +51,21 @@ export function OrderModal({ order, isOpen, onClose, onStatusChange, onPaymentSt
           <DialogHeader className="mb-6">
             <DialogTitle className="text-3xl font-extrabold text-olive-700 border-b pb-3 mb-4">פרטי הזמנה</DialogTitle>
           </DialogHeader>
-
-          <div className="md:grid md:grid-cols-2 gap-8 mb-6">
-            {/* Order Details Section */}
-            <div className="mb-6 md:mb-0">
-              <h3 className="text-xl font-bold text-gray-800 mb-3">פרטי הזמנה</h3>
-              <div className="space-y-2 text-gray-700">
-                <p><span className="font-semibold">מזהה הזמנה:</span> {order.orderId}</p>
-                <p><span className="font-semibold">תאריך:</span> {new Date(order.createdAt).toLocaleDateString('he-IL')}</p>
-                <p><span className="font-semibold">סך הכל:</span> ₪{order.totalPrice.toFixed(2)}</p>
-                <p><span className="font-semibold">סטטוס:</span> {order.status}</p>
-                <p><span className="font-semibold">סטטוס תשלום:</span> {order.paymentStatus}</p>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+              <div>
+                <h4 className="font-semibold">פרטי לקוח</h4>
+                <p>{order.customerName}</p>
+                <p>{order.customerPhone}</p>
+                <p>{order.customerAddress}</p> {/* New: Display customer address */}
+              </div>
+              <div>
+                <h4 className="font-semibold">פרטי הזמנה</h4>
+                <p>תאריך: {new Date(order.createdAt).toLocaleDateString()}</p>
+                <p>סך הכל: ₪{order.totalPrice.toFixed(2)}</p>
+                <p>סטטוס: {order.status}</p>
+                <p>סטטוס תשלום: {order.paymentStatus}</p>
+                <p>דרוש משלוח: {order.deliveryRequired ? 'כן' : 'לא'}</p> {/* New: Display deliveryRequired */}
               </div>
             </div>
 

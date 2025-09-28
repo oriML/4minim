@@ -62,6 +62,7 @@ export function OrderTable({ orders }: OrderTableProps) {
               <TableHead className="text-right">סך הכל</TableHead>
               <TableHead className="text-right">סטטוס</TableHead>
               <TableHead className="w-[100px] text-right">סטטוס תשלום</TableHead>
+              <TableHead className="text-right">דרוש משלוח</TableHead> {/* New TableHead */}
               <TableHead className="text-right">תאריך</TableHead>
               <TableHead className="text-right">פעולות</TableHead>
             </TableRow>
@@ -101,6 +102,9 @@ export function OrderTable({ orders }: OrderTableProps) {
                     >
                       {order.paymentStatus === 'שולם' ? '✅' : '❌'}
                     </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {order.deliveryRequired ? '✅' : '❌'} {/* New TableCell for deliveryRequired */}
                   </TableCell>
                   <TableCell className="text-right">{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell>

@@ -48,6 +48,7 @@ export async function createSingleProductOrder(cart: Cart, customerInfo: Custome
       productsJSON: JSON.stringify(productsInOrder),
       totalPrice: totalPrice,
       notes: customerInfo.notes, // Pass the notes here
+      deliveryRequired: customerInfo.deliveryRequired,
     };
 
     // 4. Add the order using the generic addOrder function

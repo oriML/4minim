@@ -24,9 +24,9 @@ export function ProductCard({ product, qty, onQtyChange }: ProductCardProps) {
 
   return (
     <div className="rounded-lg border bg-white p-4 shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col items-center text-center">
-      {product.imageURL && (
+      {product.imageUrl && (
         <Image
-          src={product.imageURL}
+          src={product.imageUrl}
           alt={product.productName_HE}
           width={150}
           height={150}

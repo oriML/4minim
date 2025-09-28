@@ -28,7 +28,7 @@ const getProducts = async (userId: string | null): Promise<Product[]> => {
     productName_HE: row[4],
     description: row[5],
     price: parseFloat(row[6]),
-    imageURL: row[7],
+    imageUrl: row[7],
   }));
 
   return userId ? products.filter(product => product.userId === userId) : [];
@@ -37,7 +37,7 @@ const getProducts = async (userId: string | null): Promise<Product[]> => {
 const getUsers = async (): Promise<User[]> => {
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${USERS_SHEET_NAME}!A2:F`,
+    range: `${USERS_SHEET_NAME}!A2:G`,
   });
 
   const values = response.data.values;
@@ -52,7 +52,33 @@ const getUsers = async (): Promise<User[]> => {
     passwordHash: row[3],
     role: row[4] as 'admin' | 'user',
     status: row[5],
+    deliveryFee: row[6] ? parseFloat(row[6]) : 0,
   }));
+};
+
+const getUserByEmail = async (email: string): Promise<User | null> => {
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${USERS_SHEET_NAME}!A2:G`,
+
+  });
+
+  const values = response.data.values;
+  if (!values) {
+    return null;
+  }
+
+  const users = values.map((row) => ({
+    userId: row[0],
+    username: row[1],
+    email: row[2],
+    passwordHash: row[3],
+    role: row[4] as 'admin' | 'user',
+    status: row[5],
+    deliveryFee: row[6] ? parseFloat(row[6]) : 0,
+  }));
+
+  return users.filter(u => u.email === email)[0];
 };
 
 const addProduct = async (product: Omit<Product, 'id' | 'userId'>, userId: string): Promise<Product> => {
@@ -64,7 +90,7 @@ const addProduct = async (product: Omit<Product, 'id' | 'userId'>, userId: strin
     range: `${PRODUCTS_SHEET_NAME}!A:I`, // Assuming userId is in column B
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[newProduct.id, newProduct.userId, newProduct.category, newProduct.productName_EN, newProduct.productName_HE, newProduct.description, newProduct.price, newProduct.imageURL]],
+      values: [[newProduct.id, newProduct.userId, newProduct.category, newProduct.productName_EN, newProduct.productName_HE, newProduct.description, newProduct.price, newProduct.imageUrl]],
     },
   });
 
@@ -94,7 +120,7 @@ const updateProduct = async (id: string, updates: Partial<Omit<Product, 'id' | '
     range,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[updatedProduct.id, updatedProduct.userId, updatedProduct.category, updatedProduct.productName_EN, updatedProduct.productName_HE, updatedProduct.description, updatedProduct.price, updatedProduct.imageURL]],
+      values: [[updatedProduct.id, updatedProduct.userId, updatedProduct.category, updatedProduct.productName_EN, updatedProduct.productName_HE, updatedProduct.description, updatedProduct.price, updatedProduct.imageUrl]],
     },
   });
 
@@ -121,7 +147,7 @@ const getAllProductsRaw = async (): Promise<Product[]> => {
     productName_HE: row[4],
     description: row[5],
     price: parseFloat(row[6]),
-    imageURL: row[7],
+    imageUrl: row[7],
   }));
 };
 
@@ -156,21 +182,22 @@ const deleteProduct = async (id: string, userId: string): Promise<void> => {
   });
 };
 
-const addOrder = async (order: Omit<Order, 'orderId' | 'orderDate' | 'status' | 'paymentStatus' | 'userId'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה', paymentStatus?: 'שולם' | 'לא שולם' }, userId: string): Promise<Order> => {
+const addOrder = async (order: Omit<Order, 'orderId' | 'orderDate' | 'status' | 'paymentStatus' | 'userId' | 'deliveryRequired'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה', paymentStatus?: 'שולם' | 'לא שולם', deliveryRequired?: boolean }, userId: string): Promise<Order> => {
   const newOrderId = `ORD-${Date.now()}`;
-  const newOrder: Order = { ...order, orderId: newOrderId, userId: userId };
+  const newOrder: Order = { ...order, orderId: newOrderId, userId: userId, deliveryRequired: order.deliveryRequired ?? false }; // Default to false if not provided
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A:I`, // Assuming userId is in column B
+    range: `${ORDERS_SHEET_NAME}!A:J`, // Updated range to J
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[newOrder.orderId, newOrder.userId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status, newOrder.notes || '', newOrder.paymentStatus]],
+      values: [[newOrder.orderId, newOrder.userId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status, newOrder.notes || '', newOrder.paymentStatus, newOrder.deliveryRequired ? 'TRUE' : 'FALSE']], // Added deliveryRequired
     },
   });
 
   return newOrder;
 };
+
 
 const getCustomers = async (userId: string | null): Promise<Customer[]> => {
   const response = await sheets.spreadsheets.values.get({
@@ -266,7 +293,7 @@ const getAllCustomersRaw = async (): Promise<Customer[]> => {
 const getOrders = async (userId: string | null): Promise<Order[]> => {
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A2:I`, // Assuming userId is in column I
+    range: `${ORDERS_SHEET_NAME}!A2:J`, // Updated range to J
   });
 
   const values = response.data.values;
@@ -284,10 +311,12 @@ const getOrders = async (userId: string | null): Promise<Order[]> => {
     status: row[6] as 'בהמתנה' | 'בוצעה' | 'בוטלה',
     notes: row[7] || '',
     paymentStatus: (row[8] as 'שולם' | 'לא שולם') || 'לא שולם',
+    deliveryRequired: row[9] === 'TRUE', // New: Parse boolean from string
   }));
 
   return userId ? orders.filter(order => order.userId === userId) : [];
 };
+
 
 const updateOrder = async (id: string, updates: Partial<Omit<Order, 'orderId' | 'userId'>>, userId: string): Promise<Order> => {
   const orders = await getOrders(userId); // getOrders already filters by userId
@@ -305,25 +334,26 @@ const updateOrder = async (id: string, updates: Partial<Omit<Order, 'orderId' | 
     throw new Error('Order not found or you do not have permission to update it.');
   }
 
-  const range = `${ORDERS_SHEET_NAME}!A${actualOrderIndex + 2}:I${actualOrderIndex + 2}`;
+  const range = `${ORDERS_SHEET_NAME}!A${actualOrderIndex + 2}:J${actualOrderIndex + 2}`; // Updated range to J
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
     range,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[updatedOrder.orderId, updatedOrder.userId, updatedOrder.customerId, updatedOrder.productsJSON, updatedOrder.totalPrice, updatedOrder.orderDate, updatedOrder.status, updatedOrder.notes || '', updatedOrder.paymentStatus]],
+      values: [[updatedOrder.orderId, updatedOrder.userId, updatedOrder.customerId, updatedOrder.productsJSON, updatedOrder.totalPrice, updatedOrder.orderDate, updatedOrder.status, updatedOrder.notes || '', updatedOrder.paymentStatus, updatedOrder.deliveryRequired ? 'TRUE' : 'FALSE']], // Added deliveryRequired
     },
   });
 
   return updatedOrder;
 };
 
+
 // Helper to get all orders without userId filtering for internal use
 const getAllOrdersRaw = async (): Promise<Order[]> => {
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A2:I`,
+    range: `${ORDERS_SHEET_NAME}!A2:J`,
   });
 
   const values = response.data.values;
@@ -341,8 +371,10 @@ const getAllOrdersRaw = async (): Promise<Order[]> => {
     status: row[6] as 'בהמתנה' | 'בוצעה' | 'בוטלה',
     notes: row[7] || '',
     paymentStatus: (row[8] as 'שולם' | 'לא שולם') || 'לא שולם',
+    deliveryRequired: row[9] === 'TRUE', // New: Parse boolean from string
   }));
 };
+
 
 const getSheetId = async (sheetName: string): Promise<number | null> => {
   const response = await sheets.spreadsheets.get({
@@ -528,6 +560,7 @@ export const googleSheetService = {
   updateOrder,
   getAllOrdersRaw,
   getUsers,
+  getUserByEmail,
   getSets,
   addSet,
   updateSet,

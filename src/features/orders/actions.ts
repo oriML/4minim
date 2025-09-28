@@ -4,6 +4,8 @@ import { DBOrder, UIOrder, UIProduct, Order, Product, Customer } from "@/core/ty
 import { orderService } from '@/features/orders/service';
 import { productService } from '@/features/products/service';
 import { customerService } from '@/features/customers/service';
+import { getUser } from '@/core/utils/user-context';
+import { googleSheetService } from "@/services/google-sheets";
 
 /**
  * Helper function to transform a raw database order and its associated products
@@ -28,7 +30,7 @@ const mapOrderToUIFormat = (
         ...orderProductData, // Spread dynamic properties (qty, size, color, etc.)
         productId,
         name: productInfo?.productName_HE || "Product not found",
-        imageUrl: productInfo?.imageURL || "/images/placeholder.png",
+        imageUrl: productInfo?.imageUrl || "/images/placeholder.png",
       };
     }
   );
@@ -37,11 +39,13 @@ const mapOrderToUIFormat = (
     orderId: order.orderId,
     customerId: order.customerId,
     customerName: customer?.fullName || "Customer not found",
+    customerPhone: customer?.phone ?? '',
+    customerAddress: customer?.address ?? '', // New: Include customer address
     products: enrichedProducts,
     createdAt: order.createdAt,
-    customerPhone: customer?.phone ?? '',
     status: order.status,
     paymentStatus: order.paymentStatus,
+    deliveryRequired: order.deliveryRequired, // New: Include deliveryRequired
     notes: order.notes,
     totalPrice
   };
@@ -84,8 +88,38 @@ export const getOrderWithProducts = async (
 
     return uiOrder;
   } catch (error) {
-    console.error("Failed to fetch or process order from Google Sheets:", error);
-    // Depending on the error, you might want to throw it or handle it differently
+    console.error(`Failed to send WhatsApp ${type} for order ${orderId} to ${to}:`, error);
+  }
+};
+
+export const updateOrderDeliveryRequired = async (
+  orderId: string,
+  deliveryRequired: boolean,
+  customerAddress?: string // Optional address update
+): Promise<UIOrder | null> => {
+  'use server';
+  try {
+    const updates: Partial<Order> = { deliveryRequired };
+    // If customerAddress is provided, we need to update the customer's address.
+    // This requires a new action/service call to update the customer.
+    // For now, we'll just update the order's deliveryRequired.
+    // If address needs to be stored with the order, Order interface needs an address field.
+    // Let's assume for now address is part of customer and will be handled separately if needed.
+
+    const updatedOrder = await orderService.updateOrder(orderId, updates);
+    // Re-fetch the full UIOrder to ensure all derived data is correct
+    const [allProducts, allCustomers] = await Promise.all([
+      productService.getProducts(),
+      customerService.getCustomers(),
+    ]);
+    const dbOrder: DBOrder = {
+      ...updatedOrder,
+      products: JSON.parse(updatedOrder.productsJSON || '{}'),
+      createdAt: new Date(updatedOrder.orderDate),
+    };
+    return mapOrderToUIFormat(dbOrder, allProducts, allCustomers);
+  } catch (error) {
+    console.error(`Failed to update deliveryRequired for order ${orderId}:`, error);
     return null;
   }
 };
@@ -113,3 +147,14 @@ export const updateOrderPaymentStatus = async (
   }
 };
 
+/**
+ * Server Action: Fetches the delivery fee from the current user's data.
+ * @returns A promise that resolves to the delivery fee amount.
+ */
+export const getDeliveryFeeAction = async (): Promise<number> => {
+  const email = (await getUser())?.email;
+  if (!email) return 0;
+
+  const user = await googleSheetService.getUserByEmail(email);
+  return user?.deliveryFee ?? 0;
+};

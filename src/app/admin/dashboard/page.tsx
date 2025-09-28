@@ -31,7 +31,7 @@ async function AdminDashboardPage() {
         productId: productId, // Explicitly add productId
         ...item,
         name: productDetails?.productName_HE || 'Unknown Product',
-        imageUrl: productDetails?.imageURL || '',
+        imageUrl: productDetails?.imageUrl || '',
       };
     });
 

@@ -1,7 +1,6 @@
 import { ProductForm } from '@/features/admin/components/ProductForm';
 import { updateProductAction } from '@/features/admin/actions';
 import { notFound } from 'next/navigation';
-import { Product } from '@/core/types';
 import { productService } from '@/features/products/service';
 
 interface PageProps {
@@ -17,12 +16,10 @@ async function EditProductPage({ params }: PageProps) {
     notFound();
   }
 
-  const updateAction = updateProductAction;
-
   return (
     <div>
       <h1 className="text-3xl font-bold text-center mb-8 text-olive">ערוך מוצר</h1>
-      <ProductForm action={updateAction} product={product} productId={product.id} />
+      <ProductForm action={updateProductAction} product={product} productId={product.id} />
     </div>
   );
 }
