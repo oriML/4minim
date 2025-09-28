@@ -27,6 +27,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
     email: '', // This will be removed from the form but kept in the state for now
     address: '',
     notes: '', // Added notes field
+    deliveryRequired: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -90,6 +91,18 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
         <input type="tel" placeholder="טלפון*" value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition" />
         <input type="text" placeholder="כתובת למשלוח" value={customerInfo.address} onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition sm:col-span-2" />
         <textarea placeholder="הערות (אופציונלי)" value={customerInfo.notes} onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition sm:col-span-2" rows={3}></textarea>
+      </div>
+      <div className="mt-4 flex items-center">
+        <input
+          id="delivery-checkbox-cart"
+          type="checkbox"
+          checked={customerInfo.deliveryRequired}
+          onChange={(e) => setCustomerInfo({ ...customerInfo, deliveryRequired: e.target.checked })}
+          className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
+        />
+        <label htmlFor="delivery-checkbox-cart" className="mr-2 text-sm font-medium text-gray-900">
+          דרוש משלוח
+        </label>
       </div>
       <button onClick={handleConfirmOrder} disabled={isSubmitting} className="w-full mt-4 px-4 py-3 rounded-lg bg-brand-dark text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">
         {isSubmitting ? 'שולח הזמנה...' : 'אשר והמשך לתשלום'}

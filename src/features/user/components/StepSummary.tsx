@@ -16,6 +16,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
     email: '',
     address: '',
     notes: '',
+    deliveryRequired: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -76,6 +77,18 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
             <input type="tel" placeholder="טלפון*" value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition" />
             <input type="text" placeholder="כתובת למשלוח" value={customerInfo.address} onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition" />
             <textarea placeholder="הערות (אופציונלי)" value={customerInfo.notes} onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition" rows={3}></textarea>
+          </div>
+          <div className="mt-4 flex items-center">
+            <input
+              id="delivery-checkbox"
+              type="checkbox"
+              checked={customerInfo.deliveryRequired}
+              onChange={(e) => setCustomerInfo({ ...customerInfo, deliveryRequired: e.target.checked })}
+              className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
+            />
+            <label htmlFor="delivery-checkbox" className="mr-2 text-sm font-medium text-gray-900">
+              דרוש משלוח
+            </label>
           </div>
           <div className="text-center mt-6">
             <button onClick={handleConfirmOrder} disabled={isSubmitting || selectedProducts.length === 0} className="w-full px-4 py-3 rounded-lg bg-green-800 cursor-pointer text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">

@@ -63,13 +63,15 @@ export function OrderModal({ order, isOpen, onClose, onStatusChange, onPaymentSt
                 <h4 className="font-semibold">פרטי לקוח</h4>
                 <p>{order.customerName}</p>
                 <p>{order.customerPhone}</p>
+                <p>{order.customerAddress}</p> {/* New: Display customer address */}
               </div>
               <div>
                 <h4 className="font-semibold">פרטי הזמנה</h4>
                 <p>תאריך: {new Date(order.createdAt).toLocaleDateString()}</p>
-                <p>סך הכל: ${order.totalPrice.toFixed(2)}</p>
+                <p>סך הכל: ₪{order.totalPrice.toFixed(2)}</p>
                 <p>סטטוס: {order.status}</p>
                 <p>סטטוס תשלום: {order.paymentStatus}</p>
+                <p>דרוש משלוח: {order.deliveryRequired ? 'כן' : 'לא'}</p> {/* New: Display deliveryRequired */}
               </div>
             </div>
             <div>
