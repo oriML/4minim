@@ -201,7 +201,7 @@ const OrderDetailsPage: React.FC = () => {
           {isPaid ? (
             <SummaryStep order={order} isCopied={isCopied} handleCopyClick={handleCopyClick} />
           ) : (
-            <div className="flex flex-col lg:flex-row-reverse lg:space-x-reverse lg:space-x-8 space-y-8 lg:space-y-0">
+            <div className="flex flex-col lg:flex-row lg:space-x lg:space-x-8 space-y-8 lg:space-y-0">
               <div className="lg:w-1/2 space-y-8">
                 <CustomerDetailsStep order={order} />
                 <ProductDetailsStep order={order} />
@@ -212,7 +212,7 @@ const OrderDetailsPage: React.FC = () => {
                   <p className="text-5xl font-bold text-[#4a633e]">₪{order.totalPrice.toFixed(2)}</p>
                 </div>
 
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center visible lg:invisible">
                   <span className="font-mono text-lg text-gray-600">מספר הזמנה: {order.orderId}</span>
                   <Tooltip>
                     <TooltipTrigger asChild>
