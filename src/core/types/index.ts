@@ -56,6 +56,7 @@ export interface Order {
   paymentStatus: 'שולם' | 'לא שולם';
   deliveryRequired: boolean; // New: Indicates if delivery is required
   notes?: string; // Optional notes for the order
+  originalSetId?: string; // New: ID of the original set if the order is for a pre-built set
 }
 
 // The shape of the product data stored in the order's JSON field

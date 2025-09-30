@@ -13,7 +13,7 @@ interface CustomSet {
   arava: Product | null;
 }
 
-export async function createCustomSetOrder(set: CustomSet, customerInfo: CustomerInfo) {
+export async function createCustomSetOrder(set: CustomSet, customerInfo: CustomerInfo, setId: string | null | undefined, totalPriceArg: number) {
   let newOrderId;
   try {
     // 1. Find or create the customer
@@ -31,9 +31,8 @@ export async function createCustomSetOrder(set: CustomSet, customerInfo: Custome
       customer = await customerService.createCustomer(customerData);
     }
 
-    // 2. Calculate total price and prepare products JSON from the CustomSet
+    // 2. Prepare products JSON from the CustomSet
     const selectedProducts = Object.values(set).filter(p => p !== null) as Product[];
-    const totalPrice = selectedProducts.reduce((acc, product) => acc + product.price, 0);
 
     const productsInOrder: Record<string, { qty: number }> = {};
     selectedProducts.forEach(product => {
@@ -44,9 +43,10 @@ export async function createCustomSetOrder(set: CustomSet, customerInfo: Custome
     const orderData: Omit<Order, 'orderId' | 'orderDate' | 'status' | 'userId'> = {
       customerId: customer.customerId,
       productsJSON: JSON.stringify(productsInOrder),
-      totalPrice: totalPrice,
+      totalPrice: totalPriceArg,
       notes: customerInfo.notes,
       deliveryRequired: customerInfo.deliveryRequired,
+      ...(setId && { originalSetId: setId }), // Add originalSetId if available
     };
 
     // 4. Add the order using the generic addOrder function

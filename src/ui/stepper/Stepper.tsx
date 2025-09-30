@@ -79,7 +79,7 @@ const StepNode = ({ children, index, currentStep, onStepChange, totalSteps }: an
   const status = currentStep > index ? 'completed' : currentStep === index ? 'active' : 'upcoming';
 
   return (
-    <motion.div animate={status} className="relative flex flex-row-reverse md:flex-col items-center gap-4 cursor-pointer md:flex-1" onClick={() => onStepChange(index)}>
+    <motion.div animate={status} className="relative flex flex-row md:flex-col items-center gap-4 cursor-pointer md:flex-1" onClick={() => onStepChange(index)}>
       {/* Circle + Icon */}
       <motion.div
         variants={circleVariants}

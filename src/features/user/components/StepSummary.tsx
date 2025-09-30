@@ -8,9 +8,11 @@ import { CustomerInfo, Product } from '@/core/types';
 
 interface StepSummaryProps {
   set: CustomSet;
+  setId?: string | null;
+  currentTotalPrice: number;
 }
 
-export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
+export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTotalPrice }) => {
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     fullName: '',
     phone: '',
@@ -35,9 +37,8 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
   }, [set]);
 
   const total = useMemo(() => {
-    const productsTotal = selectedProducts.reduce((acc, product) => acc + product.price, 0);
-    return customerInfo.deliveryRequired ? productsTotal + deliveryFee : productsTotal;
-  }, [selectedProducts, customerInfo.deliveryRequired, deliveryFee]);
+    return customerInfo.deliveryRequired ? currentTotalPrice + deliveryFee : currentTotalPrice;
+  }, [currentTotalPrice, customerInfo.deliveryRequired, deliveryFee]);
 
   const handleConfirmOrder = async () => {
     if (!customerInfo.fullName || !customerInfo.phone) {
@@ -48,14 +49,16 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set }) => {
       alert('אנא מלאו כתובת למשלוח.');
       return;
     }
-    if (selectedProducts.length === 0) {
+    // If it's a pre-built set, we don't need to check selectedProducts.length
+    if (!setId && selectedProducts.length === 0) {
       alert('לא נבחרו מוצרים.');
       return;
     }
 
     setIsSubmitting(true);
-    await createCustomSetOrder(set, customerInfo);
+    await createCustomSetOrder(set, customerInfo, setId, currentTotalPrice);
   };
+
 
   return (
     <div className="max-w-4xl mx-auto">
