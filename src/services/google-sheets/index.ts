@@ -182,9 +182,17 @@ const deleteProduct = async (id: string, userId: string): Promise<void> => {
   });
 };
 
-const addOrder = async (order: Omit<Order, 'orderId' | 'orderDate' | 'status' | 'paymentStatus' | 'userId' | 'deliveryRequired'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה', paymentStatus?: 'שולם' | 'לא שולם', deliveryRequired?: boolean }, userId: string): Promise<Order> => {
+const addOrder = async (order: Omit<Order, 'orderId' | 'status' | 'paymentStatus' | 'userId' | 'deliveryRequired'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה', paymentStatus?: 'שולם' | 'לא שולם', deliveryRequired?: boolean, orderDate: string }, userId: string): Promise<Order> => {
   const newOrderId = `ORD-${Date.now()}`;
-  const newOrder: Order = { ...order, orderId: newOrderId, userId: userId, deliveryRequired: order.deliveryRequired ?? false }; // Default to false if not provided
+  const newOrder: Order = {
+    ...order,
+    orderId: newOrderId,
+    userId: userId,
+    deliveryRequired: order.deliveryRequired ?? false,
+    orderDate: order.orderDate,
+    status: order.status ?? 'בהמתנה', // Default status
+    paymentStatus: order.paymentStatus ?? 'לא שולם', // Default payment status
+  };
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,

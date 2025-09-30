@@ -8,9 +8,10 @@ export const orderService = {
     return googleSheetService.getOrders(userId);
   },
 
-  createOrder: async (order: Omit<Order, 'orderId' | 'orderDate' | 'status' | 'paymentStatus' | 'userId'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה', paymentStatus?: 'שולם' | 'לא שולם' }): Promise<Order> => {
+  createOrder: async (order: Omit<Order, 'orderId' | 'status' | 'paymentStatus' | 'userId'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה', paymentStatus?: 'שולם' | 'לא שולם', orderDate?: string }): Promise<Order> => {
     const userId = await getRequiredUserId();
-    return googleSheetService.addOrder(order, userId);
+    const orderWithDate = { ...order, orderDate: order.orderDate || new Date().toISOString() };
+    return googleSheetService.addOrder(orderWithDate, userId);
   },
 
   updateOrder: async (id: string, updates: Partial<Omit<Order, 'orderId' | 'userId'>>): Promise<Order> => {
