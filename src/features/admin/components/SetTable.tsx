@@ -49,10 +49,10 @@ export const SetTable: React.FC<SetTableProps> = ({ sets }) => {
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
-            <TableHead className="w-[100px]">מזהה</TableHead>
-            <TableHead>שם הסט</TableHead>
-            <TableHead>מחיר</TableHead>
             <TableHead>פעולות</TableHead>
+            <TableHead>מחיר</TableHead>
+            <TableHead>שם הסט</TableHead>
+            <TableHead className="w-[100px]">מזהה</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -65,9 +65,6 @@ export const SetTable: React.FC<SetTableProps> = ({ sets }) => {
           ) : (
             sets.map((set) => (
               <TableRow key={set.id} className="border-b last:border-b-0 hover:bg-gray-50">
-                <TableCell className="font-medium text-right">{set.id}</TableCell>
-                <TableCell className="text-center">{set.title}</TableCell>
-                <TableCell className="text-center">₪{set.price.toFixed(2)}</TableCell>
                 <TableCell className='text-center'>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -90,6 +87,9 @@ export const SetTable: React.FC<SetTableProps> = ({ sets }) => {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
+                <TableCell className="text-center">₪{set.price.toFixed(2)}</TableCell>
+                <TableCell className="text-center">{set.title}</TableCell>
+                <TableCell className="font-medium text-right">{set.id}</TableCell>
               </TableRow>
             ))
           )}
