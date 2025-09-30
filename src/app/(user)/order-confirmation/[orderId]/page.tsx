@@ -5,21 +5,25 @@ import { useParams, useRouter } from 'next/navigation';
 import { getOrderWithProducts } from '@/features/orders/actions';
 import { UIOrder } from '@/core/types';
 import { Button } from '@/components/ui/button';
-import { Copy, CheckCircle2 } from 'lucide-react';
+import { Copy, CheckCircle2, Phone, MapPin, Calendar, Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // Step 1: Display Customer and Order Details
 function CustomerDetailsStep({ order }: { order: UIOrder }) {
   return (
-    <div className="bg-brand-cream p-8 rounded-2xl border-2 border-brand-brown max-w-2xl mx-auto">
-      <h3 className="text-2xl font-bold text-brand-dark mb-4">פרטי לקוח</h3>
-      <div className="space-y-3 text-lg">
-        <p><strong>שם הלקוח:</strong> {order.customerName}</p>
-        <p><strong>טלפון:</strong> {order.customerPhone}</p>
-        <p><strong>אופן קבלת הזמנה:</strong> {order.deliveryRequired ? 'משלוח' : 'איסוף עצמי'}</p>
-        {order.deliveryRequired && <p><strong>כתובת:</strong> {order.customerAddress}</p>}
-        <p><strong>תאריך הזמנה:</strong> {new Date(order.createdAt).toLocaleDateString('he-IL')}</p>
-        <p><strong>סטטוס הזמנה:</strong> {order.status}</p>
-        <p><strong>סטטוס תשלום:</strong> {order.paymentStatus}</p>
+    <div className="bg-white p-8 rounded-2xl shadow-md max-w-2xl mx-auto text-right border border-gray-100">
+      <h3 className="text-2xl font-bold text-gray-800 mb-6">פרטי לקוח והזמנה</h3>
+      <div className="space-y-4 text-lg text-gray-700">
+        <p className="flex items-center"><span className="ml-2 font-bold">שם הלקוח:</span> {order.customerName}</p>
+        <p className="flex items-center"><Phone className="ml-2 h-5 w-5 text-gray-500" /> <span className="ml-2 font-bold">טלפון:</span> {order.customerPhone}</p>
+        <p className="flex items-center"><MapPin className="ml-2 h-5 w-5 text-gray-500" /> <span className="ml-2 font-bold">אופן קבלת הזמנה:</span> {order.deliveryRequired ? 'משלוח' : 'איסוף עצמי'}</p>
+        {order.deliveryRequired && <p className="flex items-center"><MapPin className="ml-2 h-5 w-5 text-gray-500" /> <span className="ml-2 font-bold">כתובת:</span> {order.customerAddress}</p>}
+        <p className="flex items-center"><Calendar className="ml-2 h-5 w-5 text-gray-500" /> <span className="ml-2 font-bold">תאריך הזמנה:</span> {new Date(order.createdAt).toLocaleDateString('he-IL')}</p>
       </div>
     </div>
   );
@@ -28,19 +32,19 @@ function CustomerDetailsStep({ order }: { order: UIOrder }) {
 // Step 2: Display Product Details
 function ProductDetailsStep({ order }: { order: UIOrder }) {
   return (
-    <div className="bg-brand-cream p-8 rounded-2xl border-2 border-brand-brown max-w-2xl mx-auto">
-      <h3 className="text-2xl font-bold text-brand-dark mb-6">המוצרים שהוזמנו</h3>
-      <ul className="space-y-4">
+    <div className="bg-white p-8 rounded-2xl shadow-md max-w-2xl mx-auto text-right border border-gray-100">
+      <h3 className="text-2xl font-bold text-gray-800 mb-6">המוצרים שהוזמנו</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {order.products.map((product) => (
-          <li key={product.productId} className="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-soft border border-brand-brown/50">
-            <img src={product.imageUrl} alt={product.name} className="w-24 h-24 object-cover rounded-lg" />
-            <div className="flex-grow">
-              <p className="font-bold text-lg text-brand-dark">{product.name}</p>
-              <p className="text-gray-600">כמות: <span className="font-bold">{product.qty}</span></p>
+          <div key={product.productId} className="flex items-center justify-end bg-gray-50 p-3 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex-grow text-right ml-4">
+              <p className="font-bold text-lg text-gray-800">{product.name}</p>
+              <p className="text-gray-500 text-sm">כמות: <span className="font-bold">{product.qty}</span></p>
             </div>
-          </li>
+            <img src={product.imageUrl} alt={product.name} className="w-16 h-16 object-cover rounded-lg" />
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
@@ -51,34 +55,39 @@ function SummaryStep({ order, isCopied, handleCopyClick }: { order: UIOrder; isC
   const whatsappLink = `https://wa.me/${sellerPhoneNumber}`;
 
   return (
-    <div className="bg-green-800 p-10 rounded-2xl shadow-2xl text-center max-w-2xl mx-auto text-white">
-      {/* <CheckCircle2 size={64} className="mx-auto mb-4 text-brand-gold" /> */}
-      <h2 className="text-4xl font-extrabold mb-4">הזמנה הושלמה בהצלחה!</h2>
-      <p className="text-lg opacity-90">תודה רבה שהזמנתם מאיתנו, חג שמח!</p>
-      
-      <div className="mt-8 font-mono bg-black/20 rounded-lg px-4 py-2 inline-flex items-center space-x-2">
-        <span>מספר הזמנה: {order.orderId}</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCopyClick}
-          className="text-white hover:bg-white/20"
-        >
-          {isCopied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-        </Button>
+    <div className="bg-white p-8 rounded-2xl shadow-md text-center max-w-2xl mx-auto text-gray-800 border border-gray-100">
+      <CheckCircle2 size={64} className="mx-auto mb-4 text-[#4a633e]" />
+      <h2 className="text-4xl font-extrabold mb-4 text-gray-800">הזמנה הושלמה בהצלחה!</h2>
+      <p className="text-lg text-gray-600 mb-6">תודה רבה שהזמנתם מאיתנו, חג שמח!</p>
+
+      <div className="bg-[#e6ffe6] p-6 rounded-xl mb-6 shadow-inner">
+        <p className="text-xl font-semibold mb-2 text-gray-700">סה"כ לתשלום:</p>
+        <p className="text-5xl font-bold text-[#4a633e]">₪{order.totalPrice.toFixed(2)}</p>
       </div>
 
-      <div className="mt-6 text-lg">
+      <div className="text-lg text-gray-700 mb-6">
         <p><strong>אופן קבלת ההזמנה:</strong> {order.deliveryRequired ? 'משלוח' : 'איסוף עצמי'}</p>
         {order.deliveryRequired && <p><strong>כתובת:</strong> {order.customerAddress}</p>}
       </div>
 
-      <p className="text-base opacity-80 mt-6">
+      <p className="text-base text-gray-500 mb-6">
         אישור הזמנה ופרטים נוספים נשלחו אליך. לכל שאלה, ניתן לפנות אלינו ב-WhatsApp:
       </p>
-      <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block bg-brand-gold text-brand-dark font-bold py-2 px-6 rounded-full hover:bg-opacity-90 transition-all">
+      <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block bg-[#4a633e] text-white font-bold py-3 px-8 rounded-full hover:bg-[#3a532e] transition-all shadow-lg">
         שליחת הודעה ב-WhatsApp
       </a>
+
+      <div className="mt-8 text-sm text-gray-500 border-t border-gray-200 pt-4">
+        <span className="font-mono">מספר הזמנה: {order.orderId}</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleCopyClick}
+          className="text-gray-500 hover:bg-gray-100 ml-2"
+        >
+          {isCopied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -148,35 +157,85 @@ const OrderDetailsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-brand-cream py-12 px-4 sm:px-6 lg:px-8 rtl">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* <h1 className="text-4xl font-extrabold text-center text-brand-dark mb-10">אישור הזמנה</h1> */}
+    <TooltipProvider>
+      <div className="min-h-screen bg-[#f9f9f9] rtl py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-4">סיכום הזמנה</h1>
+          <div className="flex flex-col items-center justify-center mb-8">
+            <div className="flex items-center justify-center">
+              <span className="font-mono text-lg text-gray-600">מספר הזמנה: {order.orderId}</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyClick}
+                    className="text-gray-500 hover:bg-gray-100 hover:cursor-pointer ml-2"
+                  >
+                    {isCopied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>העתק כתובת אישור</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex items-center justify-center mt-2 space-x-2 space-x-reverse">
+              <span
+                className={`px-2 py-1 rounded-full text-sm font-semibold
+                  ${order.status === 'בוצעה' ? 'bg-green-100 text-green-800' : order.status === 'בוטלה' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}
+                `}
+              >
+                {order.status}
+              </span>
+              <span
+                className={`px-2 py-1 rounded-full text-sm font-semibold
+                  ${order.paymentStatus === 'שולם' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                `}
+              >
+                {order.paymentStatus}
+              </span>
+            </div>
+          </div>
 
-        {isPaid ? (
-          <SummaryStep order={order} isCopied={isCopied} handleCopyClick={handleCopyClick} />
-        ) : (
-          <>
-            <CustomerDetailsStep order={order} />
-            <ProductDetailsStep order={order} />
+          {isPaid ? (
+            <SummaryStep order={order} isCopied={isCopied} handleCopyClick={handleCopyClick} />
+          ) : (
+            <div className="flex flex-col lg:flex-row-reverse lg:space-x-reverse lg:space-x-8 space-y-8 lg:space-y-0">
+              <div className="lg:w-1/2 space-y-8">
+                <CustomerDetailsStep order={order} />
+                <ProductDetailsStep order={order} />
+              </div>
+              <div className="lg:w-1/2 space-y-8">
+                <div className="bg-white p-8 rounded-2xl shadow-md max-w-2xl mx-auto text-center border border-gray-100">
+                  <p className="text-xl font-semibold mb-2 text-gray-800">סה"כ לתשלום:</p>
+                  <p className="text-5xl font-bold text-[#4a633e]">₪{order.totalPrice.toFixed(2)}</p>
+                </div>
 
-            <div className="bg-brand-cream p-8 rounded-2xl border-2 border-brand-brown max-w-2xl mx-auto text-center">
-              <h3 className="text-2xl font-bold text-brand-dark mb-6">סה"כ לתשלום: ₪{order.totalPrice.toFixed(2)}</h3>
-              <div className="mt-4 font-mono bg-black/10 rounded-lg px-4 py-2 inline-flex items-center space-x-2">
-                <span>מספר הזמנה: {order.orderId}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopyClick}
-                  className="text-brand-dark hover:bg-black/10"
-                >
-                  {isCopied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
+                <div className="flex items-center justify-center">
+                  <span className="font-mono text-lg text-gray-600">מספר הזמנה: {order.orderId}</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCopyClick}
+                        className="text-gray-500 hover:bg-gray-100 hover:cursor-pointer ml-2"
+                      >
+                        {isCopied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>העתק כתובת אישור</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
