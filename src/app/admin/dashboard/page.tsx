@@ -1,81 +1,8 @@
-import { Product, Order, Customer, UIOrder, OrderProduct, UIProduct, Set } from '@/core/types';
-import { ProductTable } from '@/features/admin/components/ProductTable';
-import { OrderTable } from '@/features/admin/components/OrderTable';
-import { SetTable } from '@/features/admin/components/SetTable';
-import { SummaryDashboard } from '@/features/admin/components/SummaryDashboard';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { productService } from '@/features/products/service';
-import { orderService } from '@/features/orders/service';
-import { customerService } from '@/features/customers/service';
-import { getSetsAction } from '@/features/sets/actions';
 
-export const revalidate = 0; // Make it dynamic
+import { redirect } from 'next/navigation';
 
-async function AdminDashboardPage() {
-  const [products, orders, customers, sets] = await Promise.all([
-    productService.getProducts(),
-    orderService.getOrders(),
-    customerService.getCustomers(),
-    getSetsAction(),
-  ]);
-
-  const uiOrders: UIOrder[] = orders.map((order: Order) => {
-    const customer = customers.find((c: Customer) => c.customerId === order.customerId);
-    const parsedProducts: Record<string, OrderProduct> = JSON.parse(order.productsJSON || '{}');
-
-    const enrichedProducts: UIProduct[] = Object.entries(parsedProducts).map(([productId, item]) => {
-      const productDetails = products.find(p => p.id === productId);
-      return {
-        productId: productId, // Explicitly add productId
-        ...item,
-        name: productDetails?.productName_HE || 'Unknown Product',
-        imageUrl: productDetails?.imageUrl || '',
-      };
-    });
-
-    return {
-      orderId: order.orderId,
-      customerId: order.customerId,
-      customerName: customer?.fullName || 'Unknown Customer',
-      customerPhone: customer?.phone || 'N/A',
-      products: enrichedProducts,
-      totalPrice: order.totalPrice,
-      createdAt: new Date(order.orderDate),
-      status: order.status,
-      paymentStatus: order.paymentStatus,
-    };
-  });
-
-  return (
-    <div className="container mx-auto py-8">
-      <Tabs defaultValue="summary" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 sticky top-0 z-10 bg-white p-2 rounded-lg shadow-md">
-          <TabsTrigger value="sets" className="data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-md transition-all duration-200">סטים</TabsTrigger>
-          <TabsTrigger value="products" className="data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-md transition-all duration-200">מוצרים</TabsTrigger>
-          <TabsTrigger value="orders" className="data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-md transition-all duration-200">הזמנות</TabsTrigger>
-          <TabsTrigger value="summary" className="data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-md transition-all duration-200">סיכום</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="orders" className="mt-6">
-          <OrderTable orders={uiOrders} />
-        </TabsContent>
-        <TabsContent value="products" className="mt-6">
-          <ProductTable products={products} />
-        </TabsContent>
-        <TabsContent value="sets" className="mt-6">
-          <SetTable sets={sets} />
-        </TabsContent>
-        <TabsContent value="summary" className="mt-6">
-          <SummaryDashboard orders={uiOrders} products={products} />
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+function AdminDashboardPage() {
+  redirect('/admin/dashboard/summary');
 }
 
 export default AdminDashboardPage;

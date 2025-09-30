@@ -1,12 +1,16 @@
-import { getSetsAction } from '@/features/sets/actions';
 import { SetTable } from '@/features/admin/components/SetTable';
+import { getSetsAction } from '@/features/sets/actions';
 
-export default async function SetsPage() {
+export const revalidate = 0;
+
+async function AdminSetsPage() {
   const sets = await getSetsAction();
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="mt-6">
       <SetTable sets={sets} />
     </div>
   );
 }
+
+export default AdminSetsPage;
