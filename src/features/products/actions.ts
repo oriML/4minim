@@ -44,3 +44,17 @@ export const getProductsByCategory = async (): Promise<ProductsByCategory> => {
     return {}; // Return an empty object in case of an error
   }
 };
+
+/**
+ * Server Action: Fetches all products from Google Sheets, without user filtering.
+ * @returns A promise that resolves to an array of all products.
+ */
+export const getAllProductsAction = async (): Promise<Product[]> => {
+  try {
+    const products = await googleSheetService.getAllProductsRaw();
+    return products;
+  } catch (error) {
+    console.error("Failed to fetch all products:", error);
+    return []; // Return an empty array in case of an error
+  }
+};
