@@ -108,7 +108,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
       {!isAtBottom && (
         <div 
           onClick={handleScrollToSummary} 
-          className="fixed bottom-8 right-8 bg-brand-dark text-white p-4 rounded-full shadow-2xl cursor-pointer flex items-center gap-3 animate-fade-in-up z-40"
+          className="fixed bottom-8 right-8 bg-green-800 text-white p-4 rounded-full shadow-2xl cursor-pointer flex items-center gap-3 animate-fade-in-up z-40"
         >
           <ShoppingCart size={24} />
           <div className="flex flex-col items-start">
@@ -137,7 +137,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
                   ))}
                 </ul>
               ) : (
-                <p className="text-gray-500">העגלה שלך ריקה.</p>
+                <p className="text-gray-400 bg-green-800">העגלה שלך ריקה.</p>
               )}
               {customerInfo.deliveryRequired && (
                 <div className="mt-4 pt-4 border-t-2 border-dashed border-brand-brown flex justify-between items-center font-medium text-brand-dark">
@@ -166,7 +166,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
                   דרוש משלוח {deliveryFee > 0 && `(תוספת ${deliveryFee}₪)`}
                 </label>
               </div>
-              <button onClick={handleConfirmOrder} disabled={isSubmitting} className="w-full mt-4 px-4 py-3 rounded-lg bg-brand-dark text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">
+              <button onClick={handleConfirmOrder} disabled={isSubmitting} className="w-full mt-4 px-4 py-3 rounded-lg bg-green-800 text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">
                 {isSubmitting ? 'שולח הזמנה...' : 'אשר והמשך לתשלום'}
               </button>
             </div>

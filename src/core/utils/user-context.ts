@@ -29,7 +29,7 @@ export async function getUser(): Promise<User | null> {
     }
   }
 
-  return 'USR001';
+  return null;
 }
 
 export async function getUserId(): Promise<string | null> {
