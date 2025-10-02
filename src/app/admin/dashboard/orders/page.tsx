@@ -38,6 +38,7 @@ async function AdminOrdersPage() {
       createdAt: new Date(order.orderDate),
       status: order.status,
       paymentStatus: order.paymentStatus,
+      deliveryRequired: order.deliveryRequired,
     };
   });
 
