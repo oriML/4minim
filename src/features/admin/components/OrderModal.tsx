@@ -46,82 +46,67 @@ export function OrderModal({ order, isOpen, onClose, onStatusChange, onPaymentSt
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl p-6 bg-white rounded-lg shadow-xl" dir="rtl">
-        <div ref={printRef} className="text-right">
-          <DialogHeader className="mb-6">
-            <DialogTitle className="text-3xl font-extrabold text-olive-700 border-b pb-3 mb-4">פרטי הזמנה</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-              <div>
-                <h4 className="font-semibold">פרטי לקוח</h4>
-                <p>{order.customerName}</p>
-                <p>{order.customerPhone}</p>
-                <p>{order.customerAddress}</p> {/* New: Display customer address */}
-              </div>
-              <div>
-                <h4 className="font-semibold">פרטי הזמנה</h4>
-                <p>תאריך: {new Date(order.createdAt).toLocaleDateString()}</p>
-                <p>סך הכל: ₪{order.totalPrice.toFixed(2)}</p>
-                <p>סטטוס: {order.status}</p>
-                <p>סטטוס תשלום: {order.paymentStatus}</p>
-                <p>דרוש משלוח: {order.deliveryRequired ? 'כן' : 'לא'}</p> {/* New: Display deliveryRequired */}
-              </div>
-            </div>
+      <DialogContent className="max-w-3xl w-full mx-auto p-0 bg-white rounded-lg shadow-xl flex flex-col" dir="rtl">
+        <DialogHeader className="px-6 py-4 border-b">
+          <DialogTitle className="text-2xl font-bold text-gray-800">פרטי הזמנה</DialogTitle>
+        </DialogHeader>
 
-            {/* Customer Details Section */}
+        <div ref={printRef} className="flex-grow overflow-y-auto px-6 py-4 text-right">
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
             <div>
-              <h3 className="text-xl font-bold text-gray-800 mb-3">פרטי לקוח</h3>
-              <div className="space-y-2 text-gray-700">
-                <p><span className="font-semibold">שם:</span> {order.customerName}</p>
-                <p><span className="font-semibold">טלפון:</span> {order.customerPhone}</p>
-                <p><span className="font-semibold">אימייל:</span> {order.email || 'לא צוין'}</p>
-              </div>
+              <h4 className="font-semibold text-lg mb-2">פרטי לקוח</h4>
+              <p><strong>שם:</strong> {order.customerName}</p>
+              <p><strong>טלפון:</strong> {order.customerPhone}</p>
+              {order.customerAddress && <p><strong>כתובת:</strong> {order.customerAddress}</p>}
+            </div>
+            <div>
+              <h4 className="font-semibold text-lg mb-2">פרטי הזמנה</h4>
+              <p><strong>תאריך:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
+              <p><strong>סך הכל:</strong> ₪{order.totalPrice.toFixed(2)}</p>
+              <p><strong>סטטוס:</strong> {order.status}</p>
+              <p><strong>סטטוס תשלום:</strong> {order.paymentStatus}</p>
+              <p><strong>דרוש משלוח:</strong> {order.deliveryRequired ? 'כן' : 'לא'}</p>
             </div>
           </div>
 
-          {/* Products List Section */}
-          <div className="mb-6 border-t pt-6 border-gray-200">
-            <h3 className="text-xl font-bold text-gray-800 mb-3">פריטים בהזמנה</h3>
-            <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
+          <div className="border-t pt-4">
+            <h3 className="text-xl font-bold text-gray-800 mb-3">פריטים</h3>
+            <div className="space-y-3">
               {order.products.map((product) => (
-                <div key={product.productId} className="flex items-center bg-gray-50 p-3 rounded-md shadow-sm">
+                <div key={product.productId} className="flex items-center bg-gray-50 p-3 rounded-md">
                   {product.imageUrl && (
-                    <img src={product.imageUrl} alt={product.name} className="w-16 h-16 object-cover rounded-md ml-3" />
+                    <img src={product.imageUrl} alt={product.name} className="w-16 h-16 object-cover rounded-md ml-4" />
                   )}
                   <div className="flex-grow">
-                    <p className="font-semibold text-gray-800">{product.name}</p>
+                    <p className="font-semibold">{product.name}</p>
                     <p className="text-sm text-gray-600">כמות: {product.qty}</p>
-                    {product.size && <p className="text-sm text-gray-600">גודל: {product.size}</p>}
-                    {product.color && <p className="text-sm text-gray-600">צבע: {product.color}</p>}
                   </div>
-                  <span className="font-bold text-gray-900">₪{(product.qty * (product.price || 0)).toFixed(2)}</span>
+                  <span className="font-bold">₪{(product.qty * (product.price || 0)).toFixed(2)}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Notes Section */}
           {order.notes && (
-            <div className="mb-6 border-t pt-6 border-gray-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-3">הערות</h3>
+            <div className="border-t pt-4 mt-4">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">הערות</h3>
               <p className="text-gray-700">{order.notes}</p>
             </div>
           )}
         </div>
 
-        {/* Footer with Buttons and Dropdowns */}
-        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-4 mt-6 border-t pt-4 border-gray-200">
-          {/* Status Dropdowns */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        <DialogFooter className="px-6 py-4 border-t bg-gray-50 flex flex-col sm:flex-row-reverse gap-2">
+          <Button onClick={onClose} className="w-full sm:w-auto">סגור</Button>
+          <Button variant="outline" onClick={handlePrint} className="w-full sm:w-auto">הדפס</Button>
+          <div className="flex-grow flex flex-col sm:flex-row gap-2">
             <Select
               defaultValue={order.status}
               onValueChange={(newStatus: UIOrder['status']) => onStatusChange(order.orderId, newStatus)}
             >
-              <SelectTrigger className="w-full sm:w-[180px] bg-white border-gray-300 text-gray-700 focus:ring-olive-500 focus:border-olive-500">
+              <SelectTrigger className="w-full sm:w-auto flex-grow">
                 <SelectValue placeholder="שנה סטטוס" />
               </SelectTrigger>
-              <SelectContent className="bg-white shadow-lg rounded-md">
+              <SelectContent>
                 <SelectItem value="בהמתנה">בהמתנה</SelectItem>
                 <SelectItem value="בוצעה">בוצעה</SelectItem>
                 <SelectItem value="בוטלה">בוטלה</SelectItem>
@@ -131,31 +116,14 @@ export function OrderModal({ order, isOpen, onClose, onStatusChange, onPaymentSt
               defaultValue={order.paymentStatus}
               onValueChange={(newStatus: UIOrder['paymentStatus']) => onPaymentStatusChange(order.orderId, newStatus)}
             >
-              <SelectTrigger className="w-full sm:w-[180px] bg-white border-gray-300 text-gray-700 focus:ring-olive-500 focus:border-olive-500">
+              <SelectTrigger className="w-full sm:w-auto flex-grow">
                 <SelectValue placeholder="שנה סטטוס תשלום" />
               </SelectTrigger>
-              <SelectContent className="bg-white shadow-lg rounded-md">
+              <SelectContent>
                 <SelectItem value="שולם">שולם</SelectItem>
                 <SelectItem value="לא שולם">לא שולם</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col-reverse sm:flex-row gap-3 w-full sm:w-auto">
-            <Button
-              variant="outline"
-              onClick={handlePrint}
-              className="w-full sm:w-auto border-olive-600 text-olive-600 hover:bg-olive-50 hover:text-olive-700"
-            >
-              הדפס
-            </Button>
-            <Button
-              onClick={onClose}
-              className="w-full sm:w-auto bg-olive-600 text-white hover:bg-olive-700"
-            >
-              סגור
-            </Button>
           </div>
         </DialogFooter>
       </DialogContent>
