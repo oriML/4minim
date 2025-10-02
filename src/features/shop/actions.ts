@@ -49,6 +49,7 @@ export async function createSingleProductOrder(cart: Cart, customerInfo: Custome
       totalPrice: totalPrice,
       notes: customerInfo.notes, // Pass the notes here
       deliveryRequired: customerInfo.deliveryRequired,
+      paymentStatus: 'לא שולם',
     };
 
     // 4. Add the order using the generic addOrder function

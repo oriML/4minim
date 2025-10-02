@@ -1,6 +1,7 @@
 import { sheets } from './client';
 import type { Product, Order, Customer, User, Cart, CustomerInfo } from '@/core/types';
 import type { Set } from '@/features/sets/types';
+import { sendSellerNotificationEmail } from '@/core/utils/email';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const PRODUCTS_SHEET_NAME = 'Products';
@@ -202,6 +203,29 @@ const addOrder = async (order: Omit<Order, 'orderId' | 'status' | 'paymentStatus
       values: [[newOrder.orderId, newOrder.userId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status, newOrder.notes || '', newOrder.paymentStatus, newOrder.deliveryRequired ? 'TRUE' : 'FALSE']], // Added deliveryRequired
     },
   });
+
+  // Send notification email
+  try {
+    const users = await getUsers();
+    const seller = users.find(u => u.userId === userId);
+    const customers = await getCustomers(userId);
+    const customer = customers.find(c => c.customerId === newOrder.customerId);
+
+    if (seller && customer) {
+      await sendSellerNotificationEmail({
+        sellerEmail: seller.email,
+        order: newOrder,
+        customerInfo: customer,
+        seller: seller,
+      });
+    } else {
+      console.error('Could not find seller or customer for order', newOrderId);
+    }
+  } catch (emailError) {
+    console.error('Failed to send seller notification email:', emailError);
+    // We don't re-throw here because the order was already created.
+    // The primary operation succeeded.
+  }
 
   return newOrder;
 };

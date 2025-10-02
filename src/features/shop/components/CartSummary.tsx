@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Cart, Product, CustomerInfo } from '@/core/types';
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useTransition } from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { getDeliveryFeeAction } from '@/features/orders/actions';
 
@@ -18,7 +18,7 @@ function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
 interface CartSummaryProps {
   cart: Cart;
   products: Product[];
-  createOrderAction: (cart: Cart, customerInfo: CustomerInfo) => Promise<void>;
+  createOrderAction: (cart: Cart, customerInfo: CustomerInfo) => void;
 }
 
 export function CartSummary({ cart, products, createOrderAction }: CartSummaryProps) {
@@ -30,7 +30,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
     notes: '',
     deliveryRequired: false,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
   const summaryRef = useRef<HTMLDivElement>(null);
@@ -80,8 +80,9 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
       alert('העגלה שלך ריקה.');
       return;
     }
-    setIsSubmitting(true);
-    await createOrderAction(cart, customerInfo);
+    startTransition(() => {
+      createOrderAction(cart, customerInfo);
+    });
   };
 
   useEffect(() => {
@@ -166,8 +167,8 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
                   דרוש משלוח {deliveryFee > 0 && `(תוספת ${deliveryFee}₪)`}
                 </label>
               </div>
-              <button onClick={handleConfirmOrder} disabled={isSubmitting} className="w-full mt-4 px-4 py-3 rounded-lg bg-green-800 text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">
-                {isSubmitting ? 'שולח הזמנה...' : 'אשר והמשך לתשלום'}
+              <button onClick={handleConfirmOrder} disabled={isPending} className="w-full mt-4 px-4 py-3 rounded-lg bg-green-800 text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">
+                {isPending ? 'שולח הזמנה...' : 'אשר והמשך לתשלום'}
               </button>
             </div>
           </div>

@@ -8,7 +8,7 @@ export const orderService = {
     return googleSheetService.getOrders(userId);
   },
 
-  createOrder: async (order: Omit<Order, 'orderId' | 'status' | 'paymentStatus' | 'userId'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה', paymentStatus?: 'שולם' | 'לא שולם', orderDate?: string }): Promise<Order> => {
+  createOrder: async (order: Omit<Order, 'orderId' | 'status' | 'paymentStatus' | 'userId' | 'orderDate'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה', paymentStatus?: 'שולם' | 'לא שולם', orderDate?: string }): Promise<Order> => {
     const userId = await getRequiredUserId();
     const orderWithDate = { ...order, orderDate: order.orderDate || new Date().toISOString() };
     return googleSheetService.addOrder(orderWithDate, userId);

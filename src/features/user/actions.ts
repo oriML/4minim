@@ -1,9 +1,11 @@
 'use server';
 
-import type { Order, CustomerInfo, Product } from '@/core/types';
+import type { Order, CustomerInfo, Product, User } from '@/core/types';
 import { redirect } from 'next/navigation';
 import { customerService } from '@/features/customers/service';
 import { orderService } from '@/features/orders/service';
+import { googleSheetService } from '@/services/google-sheets';
+import { sendSellerNotificationEmail } from '../../core/utils/email';
 
 // Define the shape of the custom set object
 interface CustomSet {
@@ -46,13 +48,30 @@ export async function createCustomSetOrder(set: CustomSet, customerInfo: Custome
       totalPrice: totalPriceArg,
       notes: customerInfo.notes,
       deliveryRequired: customerInfo.deliveryRequired,
+      paymentStatus: 'לא שולם',
       ...(setId && { originalSetId: setId }), // Add originalSetId if available
     };
 
     // 4. Add the order using the generic addOrder function
     const newOrder = await orderService.createOrder(orderData);
     newOrderId = newOrder.orderId;
-    // 5. Redirect to the confirmation page
+
+    // 5. Send email notification to the seller
+    if (newOrder.userId) {
+      const allUsers = await googleSheetService.getUsers();
+      const seller = allUsers.find(u => u.userId === newOrder.userId);
+
+      if (seller && seller.email) {
+        await sendSellerNotificationEmail({
+          sellerEmail: seller.email,
+          order: newOrder,
+          customerInfo: customerInfo,
+          seller: seller,
+        });
+      }
+    }
+
+    // 6. Redirect to the confirmation page
 
   } catch (error) {
     console.error('Failed to create custom set order:', error);
