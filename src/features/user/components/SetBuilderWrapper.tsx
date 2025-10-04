@@ -3,10 +3,10 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { CustomSetBuilder } from './CustomSetBuilder';
-import { getProductsByCategory, getProductsAction } from '@/features/products/actions';
+import { getProductsByCategory } from '@/features/products/actions';
 import { Product } from '@/core/types';
 
-export function SetBuilderWrapper() {
+export function SetBuilderWrapper({ shopId }: { shopId: string }) {
   const searchParams = useSearchParams();
   const setId = searchParams.get('setId');
   const setPrice = searchParams.get('setPrice');
@@ -15,21 +15,16 @@ export function SetBuilderWrapper() {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log("SetBuilderWrapper useEffect: Starting fetchData");
-      const products = await getProductsByCategory();
-      setProductsByCategory(products);
-      console.log("SetBuilderWrapper useEffect: productsByCategory loaded", products);
+      const productsByCategoryData = await getProductsByCategory(shopId);
+      setProductsByCategory(productsByCategoryData);
+
+      const allProducts: Product[] = Object.values(productsByCategoryData).flat();
 
       const storedProductsJson = localStorage.getItem('preselectedSetProducts');
-      console.log("SetBuilderWrapper useEffect: storedProductsJson from localStorage", storedProductsJson);
 
       if (storedProductsJson) {
         try {
           const preselectedProductsMap: Record<string, { qty: number }> = JSON.parse(storedProductsJson);
-          console.log("SetBuilderWrapper useEffect: preselectedProductsMap", preselectedProductsMap);
-
-          const allProducts = await getProductsAction(); // Fetch all products
-          console.log("SetBuilderWrapper useEffect: allProducts loaded", allProducts);
 
           const preselected: Product[] = [];
 
@@ -39,17 +34,16 @@ export function SetBuilderWrapper() {
               preselected.push(product);
             }
           });
-          console.log("SetBuilderWrapper useEffect: preselected products array", preselected);
           setPreselectedSetProducts(preselected);
         } catch (e) {
           console.error("Failed to parse preselectedSetProducts from localStorage", e);
         } finally {
-          localStorage.removeItem('preselectedSetProducts'); // Clear after use
+          localStorage.removeItem('preselectedSetProducts');
         }
       }
     };
     fetchData();
-  }, []);
+  }, [shopId]);
 
   if (!productsByCategory) {
     return <div>Loading products...</div>; // Or a skeleton loader

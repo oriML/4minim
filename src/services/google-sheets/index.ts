@@ -1,6 +1,5 @@
 import { sheets } from './client';
-import type { Product, Order, Customer, User, Cart, CustomerInfo } from '@/core/types';
-import type { Set } from '@/features/sets/types';
+import type { Product, Order, Customer, User, Cart, CustomerInfo, Shop, Set } from '@/core/types';
 import { sendSellerNotificationEmail } from '@/core/utils/email';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
@@ -9,11 +8,12 @@ const ORDERS_SHEET_NAME = 'Orders';
 const CUSTOMERS_SHEET_NAME = 'Customers';
 const USERS_SHEET_NAME = 'Users';
 const SETS_SHEET_NAME = 'Sets';
+const SHOPS_SHEET_NAME = 'Shops';
 
-const getProducts = async (userId: string | null): Promise<Product[]> => {
+const getShops = async (): Promise<Shop[]> => {
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${PRODUCTS_SHEET_NAME}!A2:I`, // Assuming userId is in column I
+    range: `${SHOPS_SHEET_NAME}!A2:H`,
   });
 
   const values = response.data.values;
@@ -21,18 +21,62 @@ const getProducts = async (userId: string | null): Promise<Product[]> => {
     return [];
   }
 
-  const products = values.map((row) => ({
+  return values.map((row) => ({
     id: row[0],
-    userId: row[1], // Assuming userId is in column B
-    category: row[2],
-    productName_EN: row[3],
-    productName_HE: row[4],
-    description: row[5],
-    price: parseFloat(row[6]),
-    imageUrl: row[7],
+    userId: row[1],
+    name: row[2],
+    slug: row[3],
+    description: row[4],
+    imageUrl: row[5],
+    iconUrl: row[6],
+    active: row[7] === 'TRUE',
   }));
+};
 
-  return userId ? products.filter(product => product.userId === userId) : [];
+const getShopById = async (id: string): Promise<Shop | null> => {
+  const shops = await getShops();
+  return shops.find(shop => shop.id === id) || null;
+};
+
+const getShopBySlug = async (slug: string): Promise<Shop | null> => {
+  const shops = await getShops();
+  const decodedSlug = decodeURIComponent(slug);
+  const foundShop = shops.find(shop => shop.slug === decodedSlug);
+  return foundShop || null;
+};
+
+const getProductsByShop = async (shopId: string): Promise<Product[]> => {
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${PRODUCTS_SHEET_NAME}!A2:I`,
+    });
+
+    const values = response.data.values;
+    console.log("getProductsByShop: Raw values from Google Sheet:", values);
+    if (!values) {
+      console.log("getProductsByShop: No values found in Google Sheet for products.");
+      return [];
+    }
+
+    const products = values.map((row) => ({
+      id: row[0],
+      shopId: row[1],
+      category: row[2],
+      productName_EN: row[3],
+      productName_HE: row[4],
+      description: row[5],
+      price: parseFloat(row[6]),
+      imageUrl: row[7],
+    }));
+
+    const filteredProducts = products.filter(product => product.shopId === shopId);
+    console.log(`getProductsByShop: Filtered products for shopId ${shopId}:`, filteredProducts);
+    return filteredProducts;
+  } catch (error) {
+    console.error("Failed to fetch products from Google Sheets:", error);
+    return [];
+  }
 };
 
 const getUsers = async (): Promise<User[]> => {
@@ -58,544 +102,315 @@ const getUsers = async (): Promise<User[]> => {
 };
 
 const getUserByEmail = async (email: string): Promise<User | null> => {
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${USERS_SHEET_NAME}!A2:G`,
-
-  });
-
-  const values = response.data.values;
-  if (!values) {
-    return null;
-  }
-
-  const users = values.map((row) => ({
-    userId: row[0],
-    username: row[1],
-    email: row[2],
-    passwordHash: row[3],
-    role: row[4] as 'admin' | 'user',
-    status: row[5],
-    deliveryFee: row[6] ? parseFloat(row[6]) : 0,
-  }));
-
-  return users.filter(u => u.email === email)[0];
+    const users = await getUsers();
+    return users.find(u => u.email === email) || null;
 };
 
-const addProduct = async (product: Omit<Product, 'id' | 'userId'>, userId: string): Promise<Product> => {
+const addProduct = async (product: Omit<Product, 'id' | 'shopId'>, shopId: string): Promise<Product> => {
   const newId = `PROD-${Date.now()}`;
-  const newProduct: Product = { ...product, id: newId, userId: userId };
+  const newProduct: Product = { ...product, id: newId, shopId: shopId };
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${PRODUCTS_SHEET_NAME}!A:I`, // Assuming userId is in column B
+    range: `${PRODUCTS_SHEET_NAME}!A:I`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[newProduct.id, newProduct.userId, newProduct.category, newProduct.productName_EN, newProduct.productName_HE, newProduct.description, newProduct.price, newProduct.imageUrl]],
+      values: [[newProduct.id, newProduct.shopId, newProduct.category, newProduct.productName_EN, newProduct.productName_HE, newProduct.description, newProduct.price, newProduct.imageUrl]],
     },
   });
 
   return newProduct;
 };
 
-const updateProduct = async (id: string, updates: Partial<Omit<Product, 'id' | 'userId'>>, userId: string): Promise<Product> => {
-  const products = await getProducts(userId); // getProducts already filters by userId
-  const productIndex = products.findIndex((p) => p.id === id);
-  if (productIndex === -1) {
-    throw new Error('Product not found or you do not have permission to update it.');
-  }
+const getOrdersByShop = async (shopId: string): Promise<Order[]> => {
+    const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${ORDERS_SHEET_NAME}!A2:K`,
+    });
 
-  const productToUpdate = products[productIndex];
-  const updatedProduct = { ...productToUpdate, ...updates, userId: userId }; // Ensure userId is not changed
-
-  const allProducts = await getAllProductsRaw(); // Get all products to find the correct row index
-  const actualProductIndex = allProducts.findIndex(p => p.id === id && p.userId === userId);
-  if (actualProductIndex === -1) {
-    throw new Error('Product not found or you do not have permission to update it.');
-  }
-
-  const range = `${PRODUCTS_SHEET_NAME}!A${actualProductIndex + 2}:I${actualProductIndex + 2}`;
-
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: SPREADSHEET_ID,
-    range,
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
-      values: [[updatedProduct.id, updatedProduct.userId, updatedProduct.category, updatedProduct.productName_EN, updatedProduct.productName_HE, updatedProduct.description, updatedProduct.price, updatedProduct.imageUrl]],
-    },
-  });
-
-  return updatedProduct;
-};
-
-// Helper to get all products without userId filtering for internal use
-const getAllProductsRaw = async (): Promise<Product[]> => {
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${PRODUCTS_SHEET_NAME}!A2:I`,
-  });
-
-  const values = response.data.values;
-  if (!values) {
-    return [];
-  }
-
-  return values.map((row) => ({
-    id: row[0],
-    userId: row[1],
-    category: row[2],
-    productName_EN: row[3],
-    productName_HE: row[4],
-    description: row[5],
-    price: parseFloat(row[6]),
-    imageUrl: row[7],
-  }));
-};
-
-const deleteProduct = async (id: string, userId: string): Promise<void> => {
-  const allProducts = await getAllProductsRaw();
-  const productIndex = allProducts.findIndex((p) => p.id === id && p.userId === userId);
-  if (productIndex === -1) {
-    throw new Error('Product not found or you do not have permission to delete it.');
-  }
-
-  const sheetId = await getSheetId(PRODUCTS_SHEET_NAME);
-  if (sheetId === null) {
-    throw new Error(`Sheet '${PRODUCTS_SHEET_NAME}' not found.`);
-  }
-
-  await sheets.spreadsheets.batchUpdate({
-    spreadsheetId: SPREADSHEET_ID,
-    requestBody: {
-      requests: [
-        {
-          deleteDimension: {
-            range: {
-              sheetId: sheetId,
-              dimension: 'ROWS',
-              startIndex: productIndex + 1,
-              endIndex: productIndex + 2,
-            },
-          },
-        },
-      ],
-    },
-  });
-};
-
-const addOrder = async (order: Omit<Order, 'orderId' | 'status' | 'paymentStatus' | 'userId' | 'deliveryRequired'> & { status?: 'בהמתנה' | 'בוצעה' | 'בוטלה', paymentStatus?: 'שולם' | 'לא שולם', deliveryRequired?: boolean, orderDate: string }, userId: string): Promise<Order> => {
-  const newOrderId = `ORD-${Date.now()}`;
-  const newOrder: Order = {
-    ...order,
-    orderId: newOrderId,
-    userId: userId,
-    deliveryRequired: order.deliveryRequired ?? false,
-    orderDate: order.orderDate,
-    status: order.status ?? 'בהמתנה', // Default status
-    paymentStatus: order.paymentStatus ?? 'לא שולם', // Default payment status
-  };
-
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A:J`, // Updated range to J
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
-      values: [[newOrder.orderId, newOrder.userId, newOrder.customerId, newOrder.productsJSON, newOrder.totalPrice, newOrder.orderDate, newOrder.status, newOrder.notes || '', newOrder.paymentStatus, newOrder.deliveryRequired ? 'TRUE' : 'FALSE']], // Added deliveryRequired
-    },
-  });
-
-  // Send notification email
-  try {
-    const users = await getUsers();
-    const seller = users.find(u => u.userId === userId);
-    const customers = await getCustomers(userId);
-    const customer = customers.find(c => c.customerId === newOrder.customerId);
-
-    if (seller && customer) {
-      await sendSellerNotificationEmail({
-        sellerEmail: seller.email,
-        order: newOrder,
-        customerInfo: customer,
-        seller: seller,
-      });
-    } else {
-      console.error('Could not find seller or customer for order', newOrderId);
+    const values = response.data.values;
+    if (!values) {
+        return [];
     }
-  } catch (emailError) {
-    console.error('Failed to send seller notification email:', emailError);
-    // We don't re-throw here because the order was already created.
-    // The primary operation succeeded.
-  }
 
-  return newOrder;
+    const orders = values.map((row) => ({
+        orderId: row[0],
+        shopId: row[1],
+        customerId: row[2],
+        productsJSON: row[3],
+        totalPrice: parseFloat(row[4]),
+        orderDate: row[5],
+        status: row[6] as 'בהמתנה' | 'בוצעה' | 'בוטלה',
+        notes: row[7] || '',
+        paymentStatus: (row[8] as 'שולם' | 'לא שולם') || 'לא שולם',
+        deliveryRequired: row[9] === 'TRUE',
+        originalSetId: row[10],
+    }));
+
+    return orders.filter(order => order.shopId === shopId);
 };
 
+const createOrderForShop = async (order: Omit<Order, 'orderId'>, shopId: string): Promise<Order> => {
+    const newOrderId = `ORD-${Date.now()}`;
+    const newOrder: Order = {
+        ...order,
+        orderId: newOrderId,
+        shopId: shopId,
+    };
 
-const getCustomers = async (userId: string | null): Promise<Customer[]> => {
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${CUSTOMERS_SHEET_NAME}!A2:F`, // Assuming userId is in column F
-  });
+    const valuesToAppend = [
+        newOrder.orderId,
+        newOrder.shopId,
+        newOrder.customerId,
+        newOrder.productsJSON,
+        newOrder.totalPrice,
+        newOrder.orderDate,
+        newOrder.status,
+        newOrder.notes || '',
+        newOrder.paymentStatus,
+        newOrder.deliveryRequired ? 'TRUE' : 'FALSE',
+        newOrder.originalSetId || '',
+    ];
 
-  const values = response.data.values;
-  if (!values) {
-    return [];
-  }
+    await sheets.spreadsheets.values.append({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${ORDERS_SHEET_NAME}!A:K`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+            values: [valuesToAppend],
+        },
+    });
 
-  const customers = values.map((row) => ({
-    customerId: row[0],
-    userId: row[1],
-    fullName: row[2],
-    phone: row[3],
-    email: row[4],
-    address: row[5],
-  }));
+    // Send notification email
+    try {
+        const shops = await getShops();
+        const shop = shops.find(s => s.id === shopId);
+        if (shop) {
+            const users = await getUsers();
+            const admin = users.find(u => u.userId === shop.userId);
+            const customers = await getCustomersByShop(shopId);
+            const customer = customers.find(c => c.customerId === newOrder.customerId);
 
-  return userId ? customers.filter(customer => customer.userId === userId) : [];
+            if (admin && customer) {
+                await sendSellerNotificationEmail({
+                    sellerEmail: admin.email,
+                    order: newOrder,
+                    customerInfo: customer,
+                    seller: admin,
+                });
+            }
+        }
+    } catch (emailError) {
+        console.error('Failed to send seller notification email:', emailError);
+    }
+
+    return newOrder;
 };
 
-const addCustomer = async (customer: Omit<Customer, 'customerId' | 'userId'>, userId: string): Promise<Customer> => {
+const getCustomersByShop = async (shopId: string): Promise<Customer[]> => {
+    const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${CUSTOMERS_SHEET_NAME}!A2:G`,
+    });
+
+    const values = response.data.values;
+    if (!values) {
+        return [];
+    }
+
+    const customers = values.map((row) => ({
+        customerId: row[0],
+        shopId: row[1],
+        fullName: row[2],
+        phone: row[3],
+        email: row[4],
+        address: row[5],
+    }));
+
+    return customers.filter(customer => customer.shopId === shopId);
+};
+
+const getSetsByShop = async (shopId: string): Promise<Set[]> => {
+    const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SETS_SHEET_NAME}!A2:H`,
+    });
+
+    const values = response.data.values;
+    if (!values) {
+        return [];
+    }
+
+    const sets = values.map((row) => ({
+        id: row[0],
+        shopId: row[1],
+        title: row[2],
+        description: row[3],
+        productsJson: JSON.parse(row[4] || '{}'),
+        price: parseFloat(row[5]),
+        imageUrl: row[6],
+    }));
+
+    return sets.filter(set => set.shopId === shopId);
+};
+
+const addCustomer = async (customer: Omit<Customer, 'customerId'>, shopId: string): Promise<Customer> => {
   const newCustomerId = `CUST-${Date.now()}`;
-  const newCustomer: Customer = { ...customer, customerId: newCustomerId, userId: userId };
+  const newCustomer: Customer = { ...customer, customerId: newCustomerId, shopId: shopId };
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${CUSTOMERS_SHEET_NAME}!A:F`, // Assuming userId is in column B
+    range: `${CUSTOMERS_SHEET_NAME}!A:F`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[newCustomer.customerId, newCustomer.userId, newCustomer.fullName, newCustomer.phone, newCustomer.email, newCustomer.address]],
+      values: [[newCustomer.customerId, newCustomer.shopId, newCustomer.fullName, newCustomer.phone, newCustomer.email, newCustomer.address]],
     },
   });
 
   return newCustomer;
 };
 
-const updateCustomer = async (id: string, updates: Partial<Omit<Customer, 'customerId' | 'userId'>>, userId: string): Promise<Customer> => {
-  const customers = await getCustomers(userId); // getCustomers already filters by userId
-  const customerIndex = customers.findIndex((c) => c.customerId === id);
-  if (customerIndex === -1) {
-    throw new Error('Customer not found or you do not have permission to update it.');
-  }
+const updateOrder = async (id: string, updates: Partial<Omit<Order, 'orderId' | 'shopId'>>, shopId: string): Promise<Order> => {
+  const orders = await getOrdersByShop(shopId);
+  const orderIndex = orders.findIndex(order => order.orderId === id);
 
-  const customerToUpdate = customers[customerIndex];
-  const updatedCustomer = { ...customerToUpdate, ...updates, userId: userId }; // Ensure userId is not changed
-
-  const allCustomers = await getAllCustomersRaw(); // Get all customers to find the correct row index
-  const actualCustomerIndex = allCustomers.findIndex(c => c.customerId === id && c.userId === userId);
-  if (actualCustomerIndex === -1) {
-    throw new Error('Customer not found or you do not have permission to update it.');
-  }
-
-  const range = `${CUSTOMERS_SHEET_NAME}!A${actualCustomerIndex + 2}:F${actualCustomerIndex + 2}`;
-
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: SPREADSHEET_ID,
-    range,
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
-      values: [[updatedCustomer.customerId, updatedCustomer.userId, updatedCustomer.fullName, updatedCustomer.phone, updatedCustomer.email, updatedCustomer.address]],
-    },
-  });
-
-  return updatedCustomer;
-};
-
-// Helper to get all customers without userId filtering for internal use
-const getAllCustomersRaw = async (): Promise<Customer[]> => {
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${CUSTOMERS_SHEET_NAME}!A2:F`,
-  });
-
-  const values = response.data.values;
-  if (!values) {
-    return [];
-  }
-
-  return values.map((row) => ({
-    customerId: row[0],
-    userId: row[1],
-    fullName: row[2],
-    phone: row[3],
-    email: row[4],
-    address: row[5],
-  }));
-};
-
-const getOrders = async (userId: string | null): Promise<Order[]> => {
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A2:J`, // Updated range to J
-  });
-
-  const values = response.data.values;
-  if (!values) {
-    return [];
-  }
-
-  const orders = values.map((row) => ({
-    orderId: row[0],
-    userId: row[1],
-    customerId: row[2],
-    productsJSON: row[3],
-    totalPrice: parseFloat(row[4]),
-    orderDate: row[5],
-    status: row[6] as 'בהמתנה' | 'בוצעה' | 'בוטלה',
-    notes: row[7] || '',
-    paymentStatus: (row[8] as 'שולם' | 'לא שולם') || 'לא שולם',
-    deliveryRequired: row[9] === 'TRUE', // New: Parse boolean from string
-  }));
-
-  return userId ? orders.filter(order => order.userId === userId) : [];
-};
-
-
-const updateOrder = async (id: string, updates: Partial<Omit<Order, 'orderId' | 'userId'>>, userId: string): Promise<Order> => {
-  const orders = await getOrders(userId); // getOrders already filters by userId
-  const orderIndex = orders.findIndex((o) => o.orderId === id);
   if (orderIndex === -1) {
-    throw new Error('Order not found or you do not have permission to update it.');
+    throw new Error(`Order with ID ${id} not found for shop ${shopId}`);
   }
 
-  const orderToUpdate = orders[orderIndex];
-  const updatedOrder = { ...orderToUpdate, ...updates, userId: userId }; // Ensure userId is not changed
+  const existingOrder = orders[orderIndex];
+  const updatedOrder: Order = { ...existingOrder, ...updates, shopId: shopId };
 
-  const allOrders = await getAllOrdersRaw(); // Get all orders to find the correct row index
-  const actualOrderIndex = allOrders.findIndex(o => o.orderId === id && o.userId === userId);
-  if (actualOrderIndex === -1) {
-    throw new Error('Order not found or you do not have permission to update it.');
-  }
-
-  const range = `${ORDERS_SHEET_NAME}!A${actualOrderIndex + 2}:J${actualOrderIndex + 2}`; // Updated range to J
+  // Find the row number in the sheet (Google Sheets API is 1-indexed, and we skip header row)
+  const rowNumber = orderIndex + 2; // +1 for 1-indexing, +1 for skipping header
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
-    range,
+    range: `${ORDERS_SHEET_NAME}!A${rowNumber}:K${rowNumber}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[updatedOrder.orderId, updatedOrder.userId, updatedOrder.customerId, updatedOrder.productsJSON, updatedOrder.totalPrice, updatedOrder.orderDate, updatedOrder.status, updatedOrder.notes || '', updatedOrder.paymentStatus, updatedOrder.deliveryRequired ? 'TRUE' : 'FALSE']], // Added deliveryRequired
+      values: [[updatedOrder.orderId, updatedOrder.shopId, updatedOrder.customerId, updatedOrder.productsJSON, updatedOrder.totalPrice, updatedOrder.orderDate, updatedOrder.status, updatedOrder.notes || '', updatedOrder.paymentStatus, updatedOrder.deliveryRequired ? 'TRUE' : 'FALSE', updatedOrder.originalSetId || '']],
     },
   });
 
   return updatedOrder;
 };
 
+const updateProduct = async (id: string, updates: Partial<Omit<Product, 'id' | 'shopId'>>, shopId: string): Promise<Product> => {
+  const products = await getProductsByShop(shopId);
+  const productIndex = products.findIndex(product => product.id === id);
 
-// Helper to get all orders without userId filtering for internal use
-const getAllOrdersRaw = async (): Promise<Order[]> => {
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A2:J`,
-  });
-
-  const values = response.data.values;
-  if (!values) {
-    return [];
+  if (productIndex === -1) {
+    throw new Error(`Product with ID ${id} not found for shop ${shopId}`);
   }
 
-  return values.map((row) => ({
-    orderId: row[0],
-    userId: row[1],
-    customerId: row[2],
-    productsJSON: row[3],
-    totalPrice: parseFloat(row[4]),
-    orderDate: row[5],
-    status: row[6] as 'בהמתנה' | 'בוצעה' | 'בוטלה',
-    notes: row[7] || '',
-    paymentStatus: (row[8] as 'שולם' | 'לא שולם') || 'לא שולם',
-    deliveryRequired: row[9] === 'TRUE', // New: Parse boolean from string
-  }));
-};
+  const existingProduct = products[productIndex];
+  const updatedProduct: Product = { ...existingProduct, ...updates, shopId: shopId };
 
+  const rowNumber = productIndex + 2; // +1 for 1-indexing, +1 for skipping header
 
-const getSheetId = async (sheetName: string): Promise<number | null> => {
-  const response = await sheets.spreadsheets.get({
+  await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
+    range: `${PRODUCTS_SHEET_NAME}!A${rowNumber}:I${rowNumber}`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values: [[updatedProduct.id, updatedProduct.shopId, updatedProduct.category, updatedProduct.productName_EN, updatedProduct.productName_HE, updatedProduct.description, updatedProduct.price, updatedProduct.imageUrl]],
+    },
   });
 
-  const sheet = response.data.sheets?.find(
-    (s) => s.properties?.title === sheetName
-  );
-
-  return sheet?.properties?.sheetId ?? null;
+  return updatedProduct;
 };
 
-const getSets = async (userId: string | null): Promise<Set[]> => {
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${SETS_SHEET_NAME}!A2:G`, // Assuming userId is in column G
-  });
+const deleteProduct = async (id: string, shopId: string): Promise<void> => {
+  const products = await getProductsByShop(shopId);
+  const productIndex = products.findIndex(product => product.id === id);
 
-  const values = response.data.values;
-  if (!values) {
-    return [];
+  if (productIndex === -1) {
+    throw new Error(`Product with ID ${id} not found for shop ${shopId}`);
   }
 
-  const allProducts = await getAllProductsRaw(); // Fetch all products to calculate set price if needed
+  const rowNumber = productIndex + 2; // +1 for 1-indexing, +1 for skipping header
 
-  const sets = values.map((row) => {
-    const productsJson = (() => {
-      try {
-        return JSON.parse(row[4] || '{}');
-      } catch (e) {
-        console.warn(`Invalid JSON in productsJson for set ID ${row[0]}:`, row[4], e);
-        return {}; // Default to empty object on error
-      }
-    })();
-
-    let calculatedPrice = 0;
-    // Calculate price from products if set.price is not provided or is 0
-    if (!row[5] || parseFloat(row[5]) === 0) {
-      for (const productId in productsJson) {
-        const productDetails = allProducts.find(p => p.id === productId);
-        if (productDetails) {
-          calculatedPrice += productDetails.price * productsJson[productId].qty;
-        }
-      }
-    } else {
-      calculatedPrice = parseFloat(row[5]);
-    }
-
-    return ({
-      id: row[0],
-      userId: row[1],
-      title: row[2],
-      description: row[3],
-      productsJson: productsJson,
-      price: calculatedPrice,
-      imageUrl: row[6],
-    });
+  await sheets.spreadsheets.values.clear({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${PRODUCTS_SHEET_NAME}!A${rowNumber}:I${rowNumber}`,
   });
-
-  return userId ? sets.filter(set => set.userId === userId) : [];
 };
 
-const addSet = async (set: Omit<Set, 'id' | 'userId'>, userId: string): Promise<Set> => {
+const addSet = async (set: Omit<Set, 'id' | 'shopId'>, shopId: string): Promise<Set> => {
   const newId = `SET-${Date.now()}`;
-  const newSet: Set = { ...set, id: newId, userId: userId };
+  const newSet: Set = { ...set, id: newId, shopId: shopId };
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${SETS_SHEET_NAME}!A:G`, // Assuming userId is in column B
+    range: `${SETS_SHEET_NAME}!A:H`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[newSet.id, newSet.userId, newSet.title, newSet.description, JSON.stringify(newSet.productsJson), newSet.price, newSet.imageUrl]],
+      values: [[newSet.id, newSet.shopId, newSet.title, newSet.description, JSON.stringify(newSet.productsJson), newSet.price, newSet.imageUrl]],
     },
   });
 
   return newSet;
 };
 
-const updateSet = async (id: string, updates: Partial<Omit<Set, 'id' | 'userId'>>, userId: string): Promise<Set> => {
-  const sets = await getSets(userId); // getSets already filters by userId
-  const setIndex = sets.findIndex((s) => s.id === id);
+const updateSet = async (id: string, updates: Partial<Omit<Set, 'id' | 'shopId'>>, shopId: string): Promise<Set> => {
+  const sets = await getSetsByShop(shopId);
+  const setIndex = sets.findIndex(set => set.id === id);
+
   if (setIndex === -1) {
-    throw new Error('Set not found or you do not have permission to update it.');
+    throw new Error(`Set with ID ${id} not found for shop ${shopId}`);
   }
 
-  const setToUpdate = sets[setIndex];
-  const updatedSet = { ...setToUpdate, ...updates, userId: userId }; // Ensure userId is not changed
+  const existingSet = sets[setIndex];
+  const updatedSet: Set = { ...existingSet, ...updates, shopId: shopId };
 
-  const allSets = await getAllSetsRaw(); // Get all sets to find the correct row index
-  const actualSetIndex = allSets.findIndex(s => s.id === id && s.userId === userId);
-  if (actualSetIndex === -1) {
-    throw new Error('Set not found or you do not have permission to update it.');
-  }
-
-  const range = `${SETS_SHEET_NAME}!A${actualSetIndex + 2}:G${actualSetIndex + 2}`;
+  const rowNumber = setIndex + 2; // +1 for 1-indexing, +1 for skipping header
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
-    range,
+    range: `${SETS_SHEET_NAME}!A${rowNumber}:H${rowNumber}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[updatedSet.id, updatedSet.userId, updatedSet.title, updatedSet.description, JSON.stringify(updatedSet.productsJson), updatedSet.price, updatedSet.imageUrl]],
+      values: [[updatedSet.id, updatedSet.shopId, updatedSet.title, updatedSet.description, JSON.stringify(updatedSet.productsJson), updatedSet.price, updatedSet.imageUrl]],
     },
   });
 
   return updatedSet;
 };
 
-const deleteSet = async (id: string, userId: string): Promise<void> => {
-  const allSets = await getAllSetsRaw();
-  const setIndex = allSets.findIndex((s) => s.id === id && s.userId === userId);
+const deleteSet = async (id: string, shopId: string): Promise<void> => {
+  const sets = await getSetsByShop(shopId);
+  const setIndex = sets.findIndex(set => set.id === id);
+
   if (setIndex === -1) {
-    throw new Error('Set not found or you do not have permission to delete it.');
+    throw new Error(`Set with ID ${id} not found for shop ${shopId}`);
   }
 
-  const sheetId = await getSheetId(SETS_SHEET_NAME);
-  if (sheetId === null) {
-    throw new Error(`Sheet '${SETS_SHEET_NAME}' not found.`);
-  }
+  const rowNumber = setIndex + 2; // +1 for 1-indexing, +1 for skipping header
 
-  await sheets.spreadsheets.batchUpdate({
+  await sheets.spreadsheets.values.clear({
     spreadsheetId: SPREADSHEET_ID,
-    requestBody: {
-      requests: [
-        {
-          deleteDimension: {
-            range: {
-              sheetId: sheetId,
-              dimension: 'ROWS',
-              startIndex: setIndex + 1,
-              endIndex: setIndex + 2,
-            },
-          },
-        },
-      ],
-    },
+    range: `${SETS_SHEET_NAME}!A${rowNumber}:H${rowNumber}`,
   });
-};
-
-// Helper to get all sets without userId filtering for internal use
-const getAllSetsRaw = async (): Promise<Set[]> => {
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${SETS_SHEET_NAME}!A2:G`,
-  });
-
-  const values = response.data.values;
-  if (!values) {
-    return [];
-  }
-
-  return values.map((row) => ({
-    id: row[0],
-    userId: row[1],
-    title: row[2],
-    description: row[3],
-    productsJson: (() => {
-      try {
-        return JSON.parse(row[4] || '{}');
-      } catch (e) {
-        console.warn(`Invalid JSON in productsJson for set ID ${row[0]}:`, row[4], e);
-        return {}; // Default to empty object on error
-      }
-    })(),
-    price: parseFloat(row[5]),
-    imageUrl: row[6],
-  }));
 };
 
 export const googleSheetService = {
-  getProducts,
-  addProduct,
-  updateProduct,
-  deleteProduct,
-  getAllProductsRaw,
-  getCustomers,
-  addCustomer,
-  updateCustomer,
-  getAllCustomersRaw,
-  getOrders,
-  addOrder,
-  updateOrder,
-  getAllOrdersRaw,
-  getUsers,
-  getUserByEmail,
-  getSets,
-  addSet,
-  updateSet,
-  deleteSet,
-  getAllSetsRaw,
+    getShops,
+    getShopById,
+    getShopBySlug,
+    getProductsByShop,
+    getUsers,
+    getUserByEmail,
+    addProduct,
+    getOrdersByShop,
+    createOrderForShop,
+    getCustomersByShop,
+    getSetsByShop,
+    addCustomer,
+    updateOrder,
+    updateProduct,
+    deleteProduct,
+    addSet,
+    updateSet,
+    deleteSet,
 };

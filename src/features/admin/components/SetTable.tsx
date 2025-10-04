@@ -39,7 +39,7 @@ export const SetTable: React.FC<SetTableProps> = ({ sets }) => {
   return (
     <div className="rounded-md border bg-white p-4 shadow-sm">
       <div className="flex justify-between items-center mb-6">
-        <Link href="/admin/dashboard/sets/new">
+        <Link href="/admin/sets/new">
           <Button className="bg-green-700 text-white hover:bg-green-800 cursor-pointer">
             הוסף סט
           </Button>
@@ -75,7 +75,7 @@ export const SetTable: React.FC<SetTableProps> = ({ sets }) => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>
-                        <Link href={`/admin/dashboard/sets/${set.id}/edit`} className="flex items-center text-yellow-400">
+                        <Link href={`/admin/sets/${set.id}/edit`} className="flex items-center text-yellow-400">
                           <span>ערוך</span>
                           <Pencil className="ml-2 h-4 w-4" />
                         </Link>

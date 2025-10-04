@@ -1,6 +1,6 @@
 export interface Set {
   id: string;
-  userId: string; // UserID (string, FK to Users.userId)
+  shopId: string; // ShopId (string, FK to Shop.id)
   title: string;
   description: string;
   productsJson: Record<string, { qty: number; [key: string]: any }>;

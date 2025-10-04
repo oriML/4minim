@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import { CustomSet } from './CustomSetBuilder';
 import { createCustomSetOrder } from '../actions';
 import { getDeliveryFeeAction } from '@/features/orders/actions';
@@ -10,9 +11,11 @@ interface StepSummaryProps {
   set: CustomSet;
   setId?: string | null;
   currentTotalPrice: number;
+  shopId: string; // Add shopId prop
 }
 
-export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTotalPrice }) => {
+export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTotalPrice, shopId }) => {
+  const router = useRouter(); // Initialize useRouter
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     fullName: '',
     phone: '',
@@ -56,7 +59,10 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
     }
 
     setIsSubmitting(true);
-    await createCustomSetOrder(set, customerInfo, setId, currentTotalPrice);
+    const redirectPath = await createCustomSetOrder(shopId, set, customerInfo, setId, currentTotalPrice);
+    if (redirectPath) {
+      router.push(redirectPath);
+    }
   };
 
 

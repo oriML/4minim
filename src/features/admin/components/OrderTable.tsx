@@ -28,8 +28,8 @@ interface OrderTableProps {
 export function OrderTable({ orders }: OrderTableProps) {
   const [selectedOrder, setSelectedOrder] = React.useState<UIOrder | null>(null);
 
-  const handleStatusUpdate = async (orderId: string, newStatus: UIOrder['status']) => {
-    const result = await updateOrderStatus(orderId, newStatus);
+  const handleStatusUpdate = async (orderId: string, newStatus: UIOrder['status'], shopId: string) => {
+    const result = await updateOrderStatus(orderId, newStatus, shopId);
     if (result.success) {
       alert('סטטוס ההזמנה עודכן בהצלחה!');
       setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
@@ -38,8 +38,8 @@ export function OrderTable({ orders }: OrderTableProps) {
     }
   };
 
-  const handlePaymentStatusUpdate = async (orderId: string, newStatus: UIOrder['paymentStatus']) => {
-    const result = await updateOrderPaymentStatus(orderId, newStatus);
+  const handlePaymentStatusUpdate = async (orderId: string, newStatus: UIOrder['paymentStatus'], shopId: string) => {
+    const result = await updateOrderPaymentStatus(orderId, newStatus, shopId);
     if (result.success) {
       alert('סטטוס התשלום עודכן בהצלחה!');
       setSelectedOrder(prev => prev ? { ...prev, paymentStatus: newStatus } : null);
@@ -116,13 +116,13 @@ export function OrderTable({ orders }: OrderTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleStatusUpdate(order.orderId, 'בוצעה')}>
+                        <DropdownMenuItem onClick={() => handleStatusUpdate(order.orderId, 'בוצעה', order.shopId)}>
                           הזמנה בוצעה
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handlePaymentStatusUpdate(order.orderId, 'שולם')}>
+                        <DropdownMenuItem onClick={() => handlePaymentStatusUpdate(order.orderId, 'שולם', order.shopId)}>
                           הזמנה שולמה
                         </DropdownMenuItem>
-                        <DropdownMenuItem className='bg-red-400 text-red-800' onClick={() => handleStatusUpdate(order.orderId, 'בוטלה')}>
+                        <DropdownMenuItem className='bg-red-400 text-red-800' onClick={() => handleStatusUpdate(order.orderId, 'בוטלה', order.shopId)}>
                           ביטול הזמנה
                         </DropdownMenuItem>
                       </DropdownMenuContent>

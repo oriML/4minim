@@ -4,19 +4,21 @@ import React from 'react';
 import Image from 'next/image';
 import { Set } from '@/features/sets/types';
 import { useRouter } from 'next/navigation'; // Import useRouter
+import { useShop } from '@/app/[shopId]/ShopContext';
 
 interface SetCardProps {
   set: Set;
+  shopSlug: string; // Change to shopSlug
 }
 
-export const SetCard: React.FC<SetCardProps> = ({ set }) => {
+export const SetCard: React.FC<SetCardProps> = ({ set, shopSlug }) => {
   const router = useRouter(); // Initialize useRouter
 
   const handleSelectSet = () => {
     // Save productsJson to localStorage
     localStorage.setItem('preselectedSetProducts', JSON.stringify(set.productsJson));
     // Navigate to the build-a-set page
-    router.push(`/build-a-set?setId=${set.id}&setPrice=${set.price}`);
+    router.push(`/${shopSlug}/build-a-set?setId=${set.id}&setPrice=${set.price}`);
   };
 
   return (

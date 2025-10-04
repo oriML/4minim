@@ -1,25 +1,22 @@
 import { googleSheetService } from '@/services/google-sheets';
-import { Set } from '@/features/sets/types';
-import { getUserId, getRequiredUserId } from '@/core/utils/user-context';
+import { Set } from '@/core/types';
 
 export const setService = {
-  getSets: async (): Promise<Set[]> => {
-    const userId = await getUserId();
-    return googleSheetService.getSets(userId);
+  getSetsByShop: async (shopId: string): Promise<Set[]> => {
+    return googleSheetService.getSetsByShop(shopId);
   },
 
-  createSet: async (set: Omit<Set, 'id' | 'userId'>): Promise<Set> => {
-    const userId = await getRequiredUserId();
-    return googleSheetService.addSet(set, userId);
+  createSet: async (set: Omit<Set, 'id' | 'shopId'>, shopId: string): Promise<Set> => {
+    return googleSheetService.addSet(set, shopId);
   },
 
-  updateSet: async (id: string, updates: Partial<Omit<Set, 'id' | 'userId'>>): Promise<Set> => {
-    const userId = await getRequiredUserId();
-    return googleSheetService.updateSet(id, updates, userId);
+  updateSet: async (id: string, updates: Partial<Omit<Set, 'id' | 'shopId'>>, shopId: string): Promise<Set> => {
+    // @ts-ignore
+    return googleSheetService.updateSet(id, updates, shopId);
   },
 
-  deleteSet: async (id: string): Promise<void> => {
-    const userId = await getRequiredUserId();
-    return googleSheetService.deleteSet(id, userId);
+  deleteSet: async (id: string, shopId: string): Promise<void> => {
+    // @ts-ignore
+    return googleSheetService.deleteSet(id, shopId);
   },
 };

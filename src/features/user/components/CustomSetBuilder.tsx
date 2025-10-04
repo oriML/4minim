@@ -6,7 +6,7 @@ import { Step } from './Step';
 import { StepSummary } from './StepSummary';
 import { Product } from '@/core/types';
 import { ProductsByCategory } from '@/features/products/actions';
-import { getProductsAction } from '@/features/products/actions'; // Import getProductsAction
+import { useShop } from '@/app/[shopId]/ShopContext';
 
 export interface CustomSet {
   lulav: Product | null;
@@ -87,8 +87,8 @@ export const CustomSetBuilder: React.FC<CustomSetBuilderProps> = ({ productsByCa
     component: (
       <Step
         title={config.title}
-        products={productsByCategory[config.dbCategory] || []}
         selected={customSet[config.category]}
+        products={productsByCategory[config.dbCategory] || []}
         onSelect={(p) => updateProductSelection(config.category, p)}
       />
     ),
@@ -97,7 +97,7 @@ export const CustomSetBuilder: React.FC<CustomSetBuilderProps> = ({ productsByCa
   const summaryStep = {
     id: 'step-summary',
     name: 'סיכום הזמנה',
-    component: <StepSummary set={customSet} setId={setId} currentTotalPrice={currentTotalPrice} />
+    component: <StepSummary shopId={(useShop().shop.id)} set={customSet} setId={setId} currentTotalPrice={currentTotalPrice} />
   };
 
 

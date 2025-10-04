@@ -20,8 +20,8 @@ interface OrderModalProps {
   order: UIOrder;
   isOpen: boolean;
   onClose: () => void;
-  onStatusChange: (orderId: string, newStatus: UIOrder['status']) => void;
-  onPaymentStatusChange: (orderId: string, newStatus: UIOrder['paymentStatus']) => void;
+  onStatusChange: (orderId: string, newStatus: UIOrder['status'], shopId: string) => void;
+  onPaymentStatusChange: (orderId: string, newStatus: UIOrder['paymentStatus'], shopId: string) => void;
 }
 
 export function OrderModal({ order, isOpen, onClose, onStatusChange, onPaymentStatusChange }: OrderModalProps) {
@@ -46,7 +46,7 @@ export function OrderModal({ order, isOpen, onClose, onStatusChange, onPaymentSt
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl w-full mx-auto p-0 bg-white rounded-lg shadow-xl flex flex-col" dir="rtl">
+      <DialogContent className="max-w-3xl w-full mx-auto p-0 bg-white rounded-lg shadow-xl flex flex-col max-h-[90vh]" dir="rtl">
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle className="text-2xl font-bold text-gray-800">פרטי הזמנה</DialogTitle>
         </DialogHeader>
@@ -101,7 +101,7 @@ export function OrderModal({ order, isOpen, onClose, onStatusChange, onPaymentSt
           <div className="flex-grow flex flex-col sm:flex-row gap-2">
             <Select
               defaultValue={order.status}
-              onValueChange={(newStatus: UIOrder['status']) => onStatusChange(order.orderId, newStatus)}
+              onValueChange={(newStatus: UIOrder['status']) => onStatusChange(order.orderId, newStatus, order.shopId)}
             >
               <SelectTrigger className="w-full sm:w-auto flex-grow">
                 <SelectValue placeholder="שנה סטטוס" />
@@ -114,7 +114,7 @@ export function OrderModal({ order, isOpen, onClose, onStatusChange, onPaymentSt
             </Select>
             <Select
               defaultValue={order.paymentStatus}
-              onValueChange={(newStatus: UIOrder['paymentStatus']) => onPaymentStatusChange(order.orderId, newStatus)}
+              onValueChange={(newStatus: UIOrder['paymentStatus']) => onPaymentStatusChange(order.orderId, newStatus, order.shopId)}
             >
               <SelectTrigger className="w-full sm:w-auto flex-grow">
                 <SelectValue placeholder="שנה סטטוס תשלום" />
