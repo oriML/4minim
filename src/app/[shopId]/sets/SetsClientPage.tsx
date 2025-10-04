@@ -1,14 +1,17 @@
 'use client';
 
 import React from 'react';
-import { Set } from '@/features/sets/types';
+import { Set } from '@/core/types';
 import { SetCard } from '@/features/sets/components/SetCard';
+import { useShop } from '../ShopContext';
 
 interface SetsClientPageProps {
   sets: Set[];
 }
 
 export function SetsClientPage({ sets }: SetsClientPageProps) {
+  const { shop } = useShop();
+
   return (
     <div dir="rtl">
       <main className="container mx-auto py-12 px-4">
@@ -20,7 +23,7 @@ export function SetsClientPage({ sets }: SetsClientPageProps) {
         {sets.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {sets.map((set) => (
-              <SetCard key={set.id} set={set} />
+              <SetCard key={set.id} set={set} shopSlug={shop.slug} />
             ))}
           </div>
         ) : (
@@ -32,3 +35,4 @@ export function SetsClientPage({ sets }: SetsClientPageProps) {
     </div>
   );
 }
+

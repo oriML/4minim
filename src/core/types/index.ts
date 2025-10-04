@@ -1,6 +1,17 @@
+export interface Shop {
+  id: string;
+  userId: string;
+  name: string;
+  slug: string;
+  description: string;
+  imageUrl: string;
+  iconUrl: string;
+  active: boolean;
+}
+
 export interface Product {
   id: string; // ID (string, unique)
-  userId: string; // UserID (string, FK to Users.userId)
+  shopId: string; // ShopID (string, FK to Shops.shopId)
   category: string; // Category (string)
   productName_EN: string; // ProductName_EN (string)
   productName_HE: string; // ProductName_HE (string)
@@ -21,7 +32,7 @@ export interface User {
 
 export interface Customer {
   customerId: string; // CustomerID (string, unique, e.g. CUST001)
-  userId: string; // UserID (string, FK to Users.userId)
+  shopId: string; // ShopID (string, FK to Shops.shopId)
   fullName: string; // FullName (string)
   phone: string; // Phone (string, unique identifier for customer existence)
   email: string; // Email (string)
@@ -47,7 +58,7 @@ export interface Cart {
 
 export interface Order {
   orderId: string; // OrderID (string, unique, e.g. ORD001)
-  userId: string; // UserID (string, FK to Users.userId)
+  shopId: string; // ShopID (string, FK to Shops.shopId)
   customerId: string; // CustomerID (string, FK to Customers.CustomerID)
   productsJSON: string; // ProductsJSON (stringified JSON)
   totalPrice: number; // TotalPrice (number)
@@ -57,6 +68,16 @@ export interface Order {
   deliveryRequired: boolean; // New: Indicates if delivery is required
   notes?: string; // Optional notes for the order
   originalSetId?: string; // New: ID of the original set if the order is for a pre-built set
+}
+
+export interface Set {
+  id: string;
+  shopId: string;
+  title: string;
+  description: string;
+  productsJson: Record<string, { qty: number }>;
+  price: number;
+  imageUrl: string;
 }
 
 // The shape of the product data stored in the order's JSON field
@@ -70,6 +91,7 @@ export type OrderProduct = {
 // Raw Order data from the database
 export interface DBOrder {
   orderId: string;
+  shopId: string;
   customerId: string;
   products: Record<string, OrderProduct>; // JSON object with productId as key
   createdAt: Date;
@@ -89,6 +111,7 @@ export interface UIProduct extends OrderProduct {
 // Final, UI-friendly order object for rendering
 export interface UIOrder {
   orderId: string;
+  shopId: string;
   customerId: string;
   customerName: string;
   customerPhone: string;

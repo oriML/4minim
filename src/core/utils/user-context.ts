@@ -1,20 +1,9 @@
-import { AsyncLocalStorage } from 'async_hooks';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/core/auth/jwt';
-import { User } from '@/core/types';
+import { User, Shop } from '@/core/types';
+import { googleSheetService } from '@/services/google-sheets';
 
-interface UserContext {
-  userId: string;
-}
-
-const userContext = new AsyncLocalStorage<UserContext>();
-
-export function withUserContext<R>(context: UserContext, callback: () => R): R {
-  return userContext.run(context, callback);
-}
-
-
-export async function getUser(): Promise<User | null> {
+export async function getAdminUser(): Promise<User | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
 
@@ -24,7 +13,6 @@ export async function getUser(): Promise<User | null> {
       return user;
     } catch (error) {
       console.error("Error verifying token in getUser:", error);
-      // Token invalid, clear it
       cookieStore.delete('auth_token');
     }
   }
@@ -32,24 +20,12 @@ export async function getUser(): Promise<User | null> {
   return null;
 }
 
-export async function getUserId(): Promise<string | null> {
-  let store = userContext.getStore();
-  if (store?.userId) {
-    return store.userId;
-  }
-
-  const user = await getUser();
-  if (user?.userId) {
-    userContext.enterWith({ userId: user.userId });
-    return user.userId;
-  }
-  return 'USR001';
+export async function getShopById(id: string): Promise<Shop | null> {
+    const shops = await googleSheetService.getShops();
+    return shops.find(shop => shop.id === id) || null;
 }
 
-export async function getRequiredUserId(): Promise<string> {
-  const userId = await getUserId();
-  if (!userId) {
-    throw new Error('User ID not found in context. Authentication is required.');
-  }
-  return userId;
+export async function resolveShopForAdmin(userId: string): Promise<Shop | null> {
+    const shops = await googleSheetService.getShops();
+    return shops.find(shop => shop.userId === userId) || null;
 }

@@ -4,9 +4,10 @@ import { useState, useMemo, useEffect } from 'react';
 import { Product } from '@/core/types';
 import { ProductCard } from '@/features/shop/components/ProductCard';
 import { CartSummary } from '@/features/shop/components/CartSummary';
-import { createSingleProductOrder } from '@/features/shop/actions';
+import { createOrderForShop } from '@/features/shop/actions';
 import { ProductCardSkeleton } from '@/features/shop/components/ProductCardSkeleton';
 import { CartSummarySkeleton } from '@/features/shop/components/CartSummarySkeleton';
+import { useShop } from '../ShopContext';
 
 interface SingleProductClientPageProps {
   products: Product[];
@@ -14,6 +15,9 @@ interface SingleProductClientPageProps {
 
 export function SingleProductClientPage({ products }: SingleProductClientPageProps) {
   const [cart, setCart] = useState<{ [productId: string]: { qty: number } }>({});
+  const { shop } = useShop();
+
+  const createOrderAction = (cart: any, customerInfo: any) => createOrderForShop(shop.id, shop.slug, cart, customerInfo);
 
   const updateQty = (productId: string, qty: number) => {
     setCart((prev) => {
@@ -70,8 +74,9 @@ export function SingleProductClientPage({ products }: SingleProductClientPagePro
       )}
 
       {products.length > 0 && (
-        <CartSummary cart={cart} products={products} createOrderAction={createSingleProductOrder} />
+        <CartSummary cart={cart} products={products} createOrderAction={createOrderAction} />
       )}
     </div>
   );
 }
+

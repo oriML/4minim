@@ -2,6 +2,7 @@ import { ProductForm } from '@/features/admin/components/ProductForm';
 import { updateProductAction } from '@/features/admin/actions';
 import { notFound } from 'next/navigation';
 import { productService } from '@/features/products/service';
+import { getProductAction } from '@/features/products/actions';
 
 interface PageProps {
   params: { productId: string };
@@ -9,8 +10,7 @@ interface PageProps {
 }
 
 async function EditProductPage({ params }: PageProps) {
-  const products = await productService.getProducts();
-  const product = products.find(p => p.id === params.productId);
+  const product = await getProductAction(params.productId);
 
   if (!product) {
     notFound();

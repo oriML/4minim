@@ -7,7 +7,7 @@ export const Banner = () => {
       <p className="text-lg mb-8">בחר סט מוכן מראש או בנה לך סט מותאם אישית</p>
       <div className="flex justify-center gap-4">
         <a
-          href="/custom"
+          href="/build-a-set"
           className="bg-transparent border-2 border-white text-white font-bold py-3 px-6 rounded-full hover:bg-white hover:text-olive transition duration-300"
         >
           בנה סט מותאם אישית

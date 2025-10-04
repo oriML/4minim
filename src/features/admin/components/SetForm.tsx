@@ -146,7 +146,7 @@ export const SetForm: React.FC<SetFormProps> = ({ set }) => {
                 {products.map((product) => (
                   <div key={product.id} 
                        className="relative rounded-lg border border-gray-300 bg-cover bg-center shadow-sm h-40 p-4 flex flex-col justify-between"
-                       style={product.imageURL ? {backgroundImage: `url(${product.imageURL})`} : {backgroundColor: '#f0f0f0'}}>
+                       style={product.imageUrl ? {backgroundImage: `url(${product.imageUrl})`} : {backgroundColor: '#f0f0f0'}}>
                     <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg"></div>
                     <div className="relative z-10 flex items-start">
                       <div className="flex h-5 items-center">

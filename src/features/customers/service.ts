@@ -1,20 +1,18 @@
 import { googleSheetService } from '@/services/google-sheets';
 import { Customer } from '@/core/types';
-import { getUserId, getRequiredUserId } from '@/core/utils/user-context';
 
 export const customerService = {
-  getCustomers: async (): Promise<Customer[]> => {
-    const userId = await getUserId();
-    return googleSheetService.getCustomers(userId);
+  getCustomersByShop: async (shopId: string): Promise<Customer[]> => {
+    return googleSheetService.getCustomersByShop(shopId);
   },
 
-  createCustomer: async (customer: Omit<Customer, 'customerId' | 'userId'>): Promise<Customer> => {
-    const userId = await getRequiredUserId();
-    return googleSheetService.addCustomer(customer, userId);
+  createCustomerForShop: async (customer: Omit<Customer, 'customerId' | 'shopId'>, shopId: string): Promise<Customer> => {
+    // @ts-ignore
+    return googleSheetService.addCustomer(customer, shopId);
   },
 
-  updateCustomer: async (id: string, updates: Partial<Omit<Customer, 'customerId' | 'userId'>>): Promise<Customer> => {
-    const userId = await getRequiredUserId();
-    return googleSheetService.updateCustomer(id, updates, userId);
+  updateCustomer: async (id: string, updates: Partial<Omit<Customer, 'customerId' | 'shopId'>>, shopId: string): Promise<Customer> => {
+    // @ts-ignore
+    return googleSheetService.updateCustomer(id, updates, shopId);
   },
 };

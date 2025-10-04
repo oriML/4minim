@@ -4,8 +4,9 @@ import { DBOrder, UIOrder, UIProduct, Order, Product, Customer } from "@/core/ty
 import { orderService } from '@/features/orders/service';
 import { productService } from '@/features/products/service';
 import { customerService } from '@/features/customers/service';
-import { getUser } from '@/core/utils/user-context';
+import { getAdminUser, getShopById } from '@/core/utils/user-context';
 import { googleSheetService } from "@/services/google-sheets";
+import { redirect } from 'next/navigation';
 
 /**
  * Helper function to transform a raw database order and its associated products
@@ -37,6 +38,7 @@ const mapOrderToUIFormat = (
 
   return {
     orderId: order.orderId,
+    shopId: order.shopId,
     customerId: order.customerId,
     customerName: customer?.fullName || "Customer not found",
     customerPhone: customer?.phone ?? '',
@@ -57,15 +59,20 @@ const mapOrderToUIFormat = (
  * @returns A promise that resolves to the UI-friendly order object or null if not found.
  */
 export const getOrderWithProducts = async (
-  orderId: string
+  orderId: string,
+  shopId: string,
 ): Promise<UIOrder | null> => {
+  const shop = await getShopById(shopId);
+  if (!shop) {
+    throw new Error('Shop not found for admin.');
+  }
 
   try {
     // Fetch all necessary data from Google Sheets in parallel
     const [orders, allProducts, allCustomers] = await Promise.all([
-      orderService.getOrders(),
-      productService.getProducts(),
-      customerService.getCustomers(),
+      orderService.getOrdersByShop(shop.id),
+      productService.getProductsByShop(shop.id),
+      customerService.getCustomersByShop(shop.id),
     ]);
 
     const orderFromSheet = orders.find((o) => o.orderId === orderId);
@@ -88,7 +95,8 @@ export const getOrderWithProducts = async (
 
     return uiOrder;
   } catch (error) {
-    console.error(`Failed to send WhatsApp ${type} for order ${orderId} to ${to}:`, error);
+    console.error(`Failed to get order with products for order ${orderId}:`, error);
+    return null;
   }
 };
 
@@ -98,19 +106,24 @@ export const updateOrderDeliveryRequired = async (
   customerAddress?: string // Optional address update
 ): Promise<UIOrder | null> => {
   'use server';
+  const admin = await getAdminUser();
+  if (!admin) {
+    redirect('/admin/login');
+  }
+
+  const shop = await getShopById(admin.userId);
+  if (!shop) {
+    throw new Error('Shop not found for admin.');
+  }
+
   try {
     const updates: Partial<Order> = { deliveryRequired };
-    // If customerAddress is provided, we need to update the customer's address.
-    // This requires a new action/service call to update the customer.
-    // For now, we'll just update the order's deliveryRequired.
-    // If address needs to be stored with the order, Order interface needs an address field.
-    // Let's assume for now address is part of customer and will be handled separately if needed.
 
-    const updatedOrder = await orderService.updateOrder(orderId, updates);
+    const updatedOrder = await orderService.updateOrder(orderId, updates, shop.id);
     // Re-fetch the full UIOrder to ensure all derived data is correct
     const [allProducts, allCustomers] = await Promise.all([
-      productService.getProducts(),
-      customerService.getCustomers(),
+      productService.getProductsByShop(shop.id),
+      customerService.getCustomersByShop(shop.id),
     ]);
     const dbOrder: DBOrder = {
       ...updatedOrder,
@@ -128,12 +141,22 @@ export const updateOrderPaymentStatus = async (
   orderId: string,
   paymentStatus: 'שולם' | 'לא שולם'
 ): Promise<UIOrder | null> => {
+  const admin = await getAdminUser();
+  if (!admin) {
+    redirect('/admin/login');
+  }
+
+  const shop = await getShopById(admin.userId);
+  if (!shop) {
+    throw new Error('Shop not found for admin.');
+  }
+
   try {
-    const updatedOrder = await orderService.updateOrder(orderId, { paymentStatus });
+    const updatedOrder = await orderService.updateOrder(orderId, { paymentStatus }, shop.id);
     // Re-fetch the full UIOrder to ensure all derived data is correct
     const [allProducts, allCustomers] = await Promise.all([
-      productService.getProducts(),
-      customerService.getCustomers(),
+      productService.getProductsByShop(shop.id),
+      customerService.getCustomersByShop(shop.id),
     ]);
     const dbOrder: DBOrder = {
       ...updatedOrder,
@@ -152,9 +175,9 @@ export const updateOrderPaymentStatus = async (
  * @returns A promise that resolves to the delivery fee amount.
  */
 export const getDeliveryFeeAction = async (): Promise<number> => {
-  const email = (await getUser())?.email;
-  if (!email) return 0;
-
-  const user = await googleSheetService.getUserByEmail(email);
-  return user?.deliveryFee ?? 0;
+  const admin = await getAdminUser();
+  if (!admin) {
+    return 0;
+  }
+  return admin.deliveryFee ?? 0;
 };

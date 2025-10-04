@@ -12,6 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useShop } from '../../ShopContext';
 
 // Step 1: Display Customer and Order Details
 function CustomerDetailsStep({ order }: { order: UIOrder }) {
@@ -94,9 +95,10 @@ function SummaryStep({ order, isCopied, handleCopyClick }: { order: UIOrder; isC
 
 
 const OrderDetailsPage: React.FC = () => {
-  const params = useParams<{ orderId: string }>();
+  const params = useParams<{ shopId: string, orderId: string }>();
+  const { shop } = useShop();
+  
   const orderId = Array.isArray(params.orderId) ? params.orderId[0] : params.orderId;
-  const router = useRouter();
 
   const [order, setOrder] = useState<UIOrder | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,7 +120,8 @@ const OrderDetailsPage: React.FC = () => {
     if (!orderId) return;
     try {
       setLoading(true);
-      const fetchedOrder = await getOrderWithProducts(orderId);
+      const fetchedOrder = await getOrderWithProducts(orderId, shop.id);
+      console.log('OrderDetailsPage: order:', fetchedOrder);
       if (fetchedOrder) {
         setOrder(fetchedOrder);
         setIsPaid(fetchedOrder.paymentStatus === 'שולם');
@@ -151,7 +154,6 @@ const OrderDetailsPage: React.FC = () => {
       </div>
     );
   }
-
   if (!order) {
     return null;
   }
