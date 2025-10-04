@@ -35,6 +35,35 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
   const summaryRef = useRef<HTMLDivElement>(null);
 
+  // State for validation errors
+  const [fullNameError, setFullNameError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null); 
+  const [addressError, setAddressError] = useState<string | null>(null);
+
+  // Validation functions
+  const validateFullName = (name: string) => {
+    if (!name.trim()) return 'שם מלא נדרש.';
+    return null;
+  };
+
+  const validatePhone = (phone: string) => {
+    if (!phone.trim()) return 'טלפון נדרש.';
+    if (!/^[0-9]{9,10}$/.test(phone)) return 'מספר טלפון לא תקין (9 או 10 ספרות).';
+    return null;
+  };
+
+  const validateEmail = (email: string) => {
+    if (!email.trim()) return null; // Email is optional, so no error if empty
+    if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) return 'פורמט אימייל לא תקין.';
+    return null;
+  };
+
+  const validateAddress = (address: string, deliveryRequired: boolean) => {
+    if (deliveryRequired && !address.trim()) return 'כתובת למשלוח נדרשת.';
+    return null;
+  };
+
   useEffect(() => {
     const fetchFee = async () => {
       const fee = await getDeliveryFeeAction();
@@ -68,18 +97,26 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
     });
 
   const handleConfirmOrder = async () => {
-    if (!customerInfo.fullName || !customerInfo.phone) {
-      alert('אנא מלאו שם מלא וטלפון.');
-      return;
+    // Trigger all validations before submission
+    const nameErr = validateFullName(customerInfo.fullName);
+    const phoneErr = validatePhone(customerInfo.phone);
+    const emailErr = validateEmail(customerInfo.email); 
+    const addressErr = validateAddress(customerInfo.address, customerInfo.deliveryRequired);
+
+    setFullNameError(nameErr);
+    setPhoneError(phoneErr);
+    setEmailError(emailErr); 
+    setAddressError(addressErr);
+
+    if (nameErr || phoneErr || emailErr || addressErr) { 
+      return; // Prevent submission if there are errors
     }
-    if (customerInfo.deliveryRequired && !customerInfo.address) {
-      alert('אנא מלאו כתובת למשלוח.');
-      return;
-    }
+
     if (totalItems === 0) {
-      alert('העגלה שלך ריקה.');
+      alert('העגלה שלך ריקה.'); 
       return;
     }
+
     startTransition(() => {
       createOrderAction(cart, customerInfo);
     });
@@ -87,7 +124,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
 
   useEffect(() => {
     const handleScroll = () => {
-      const isScrolledToBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 250; // Adjusted threshold
+      const isScrolledToBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 250; 
       setIsAtBottom(isScrolledToBottom);
     };
     const debouncedScroll = debounce(handleScroll, 50);
@@ -100,7 +137,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
   };
 
   if (totalItems === 0) {
-    return null; // Never show if cart is empty
+    return null; 
   }
 
   return (
@@ -156,18 +193,70 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
             <div className="w-full md:w-1/2 lg:w-1/3 md:pl-8 mt-8 md:mt-0">
               <h4 className="text-xl font-bold text-brand-dark mb-4">פרטי הזמנה</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input type="text" placeholder="שם מלא*" value={customerInfo.fullName} onChange={(e) => setCustomerInfo({ ...customerInfo, fullName: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition text-right" required />
-                <input type="tel" placeholder="טלפון*" value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition text-right" required pattern="[0-9]{9,10}" dir="rtl" />
-                <input type="text" placeholder="כתובת למשלוח" value={customerInfo.address} onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition sm:col-span-2 text-right" required={customerInfo.deliveryRequired} />
-                <textarea placeholder="הערות (אופציונלי)" value={customerInfo.notes} onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })} className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition sm:col-span-2 text-right" rows={3}></textarea>
+                <div> {/* Wrapper div for full name input and error */}
+                  <input type="text" placeholder="שם מלא*" value={customerInfo.fullName}
+                    onChange={(e) => {
+                      setCustomerInfo({ ...customerInfo, fullName: e.target.value });
+                      setFullNameError(validateFullName(e.target.value));
+                    }}
+                    className={`w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition text-right ${fullNameError ? 'border-red-500' : 'border-brand-brown'}`}
+                    required
+                  />
+                  {fullNameError && <p className="text-red-500 text-sm mt-1 text-right">{fullNameError}</p>}
+                </div>
+                <div> {/* Wrapper div for phone input and error */}
+                  <input type="tel" placeholder="טלפון*" value={customerInfo.phone}
+                    onChange={(e) => {
+                      setCustomerInfo({ ...customerInfo, phone: e.target.value });
+                      setPhoneError(validatePhone(e.target.value));
+                    }}
+                    className={`w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition text-right ${phoneError ? 'border-red-500' : 'border-brand-brown'}`}
+                    required pattern="[0-9]{9,10}" dir="rtl"
+                  />
+                  {phoneError && <p className="text-red-500 text-sm mt-1 text-right">{phoneError}</p>}
+                </div>
+                <div> {/* Wrapper div for email input and error */}
+                  <input type="email" placeholder="אימייל (לקבלת עדכונים)" value={customerInfo.email}
+                    onChange={(e) => {
+                      setCustomerInfo({ ...customerInfo, email: e.target.value });
+                      setEmailError(validateEmail(e.target.value));
+                    }}
+                    className={`w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition text-right ${emailError ? 'border-red-500' : 'border-brand-brown'}`}
+                  />
+                  {emailError && <p className="text-red-500 text-sm mt-1 text-right">{emailError}</p>}
+                </div>
+                <div className="sm:col-span-2"> {/* Wrapper div for address input and error */}
+                  <input type="text" placeholder="כתובת למשלוח" value={customerInfo.address}
+                    onChange={(e) => {
+                      setCustomerInfo({ ...customerInfo, address: e.target.value });
+                      setAddressError(validateAddress(customerInfo.address, customerInfo.deliveryRequired));
+                    }}
+                    className={`w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition text-right ${addressError ? 'border-red-500' : 'border-brand-brown'}`}
+                    required={customerInfo.deliveryRequired}
+                  />
+                  {addressError && <p className="text-red-500 text-sm mt-1 text-right">{addressError}</p>}
+                </div>
+                <textarea placeholder="הערות (אופציונלי)" value={customerInfo.notes}
+                  onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })}
+                  className="w-full p-3 border-2 border-brand-brown rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition sm:col-span-2 text-right" rows={3}>
+                </textarea>
               </div>
               <div className="mt-4 flex items-center">
-                <input id="delivery-checkbox-cart" type="checkbox" checked={customerInfo.deliveryRequired} onChange={(e) => setCustomerInfo({ ...customerInfo, deliveryRequired: e.target.checked })} className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold" />
+                <input id="delivery-checkbox-cart" type="checkbox" checked={customerInfo.deliveryRequired}
+                  onChange={(e) => {
+                    setCustomerInfo({ ...customerInfo, deliveryRequired: e.target.checked });
+                    // Re-validate address if deliveryRequired changes
+                    setAddressError(validateAddress(customerInfo.address, e.target.checked));
+                  }}
+                  className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
+                />
                 <label htmlFor="delivery-checkbox-cart" className="mr-2 text-sm font-medium text-gray-900">
                   דרוש משלוח {deliveryFee > 0 && `(תוספת ${deliveryFee}₪)`}
                 </label>
               </div>
-              <button onClick={handleConfirmOrder} disabled={isPending} className="w-full mt-4 px-4 py-3 rounded-lg bg-green-800 text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">
+              <button onClick={handleConfirmOrder}
+                disabled={isPending || !!fullNameError || !!phoneError || !!addressError || totalItems === 0}
+                className="w-full mt-4 px-4 py-3 rounded-lg bg-green-800 text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">
                 {isPending ? 'שולח הזמנה...' : 'אשר והמשך לתשלום'}
               </button>
             </div>

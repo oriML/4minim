@@ -19,6 +19,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     fullName: '',
     phone: '',
+    email: '', // Added email back
     address: '',
     notes: '',
     deliveryRequired: false,
@@ -29,6 +30,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
   // State for validation errors
   const [fullNameError, setFullNameError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null); // Added emailError
   const [addressError, setAddressError] = useState<string | null>(null);
 
   // Validation functions
@@ -40,6 +42,12 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
   const validatePhone = (phone: string) => {
     if (!phone.trim()) return 'טלפון נדרש.';
     if (!/^[0-9]{9,10}$/.test(phone)) return 'מספר טלפון לא תקין (9 או 10 ספרות).';
+    return null;
+  };
+
+  const validateEmail = (email: string) => {
+    if (!email.trim()) return null; // Email is optional, so no error if empty
+    if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) return 'פורמט אימייל לא תקין.';
     return null;
   };
 
@@ -68,19 +76,21 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
     // Trigger all validations before submission
     const nameErr = validateFullName(customerInfo.fullName);
     const phoneErr = validatePhone(customerInfo.phone);
+    const emailErr = validateEmail(customerInfo.email); 
     const addressErr = validateAddress(customerInfo.address, customerInfo.deliveryRequired);
 
     setFullNameError(nameErr);
     setPhoneError(phoneErr);
+    setEmailError(emailErr); 
     setAddressError(addressErr);
 
-    if (nameErr || phoneErr || addressErr) {
+    if (nameErr || phoneErr || emailErr || addressErr) { 
       return; // Prevent submission if there are errors
     }
 
     // If it's a pre-built set, we don't need to check selectedProducts.length
     if (!setId && selectedProducts.length === 0) {
-      alert('לא נבחרו מוצרים.'); // This alert remains as it's not field-specific
+      alert('לא נבחרו מוצרים.'); 
       return;
     }
 
@@ -148,6 +158,16 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
               />
               {phoneError && <p className="text-red-500 text-sm mt-1 text-right">{phoneError}</p>}
             </div>
+            <div> {/* Wrapper div for email input and error */}
+              <input type="email" placeholder="אימייל (לקבלת עדכונים)" value={customerInfo.email}
+                onChange={(e) => {
+                  setCustomerInfo({ ...customerInfo, email: e.target.value });
+                  setEmailError(validateEmail(e.target.value));
+                }}
+                className={`w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition text-right ${emailError ? 'border-red-500' : 'border-brand-brown'}`}
+              />
+              {emailError && <p className="text-red-500 text-sm mt-1 text-right">{emailError}</p>}
+            </div>
             <div className="sm:col-span-2"> {/* Wrapper div for address input and error */}
               <input type="text" placeholder="כתובת למשלוח" value={customerInfo.address}
                 onChange={(e) => {
@@ -179,7 +199,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
           </div>
           <div className="text-center mt-6">
             <button onClick={handleConfirmOrder}
-              disabled={isSubmitting || !!fullNameError || !!phoneError || !!addressError || selectedProducts.length === 0}
+              disabled={isSubmitting || !!fullNameError || !!phoneError || !!emailError || !!addressError || selectedProducts.length === 0}
               className="w-full px-4 py-3 rounded-lg bg-green-800 cursor-pointer text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">
               {isSubmitting ? 'שולח הזמנה...' : 'אשר הזמנה'}
             </button>
