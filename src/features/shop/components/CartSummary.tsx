@@ -54,7 +54,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
   };
 
   const validateEmail = (email: string) => {
-    if (!email.trim()) return null; // Email is optional, so no error if empty
+    if (!email.trim()) return null; 
     if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) return 'פורמט אימייל לא תקין.';
     return null;
   };
@@ -109,7 +109,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
     setAddressError(addressErr);
 
     if (nameErr || phoneErr || emailErr || addressErr) { 
-      return; // Prevent submission if there are errors
+      return; 
     }
 
     if (totalItems === 0) {
@@ -162,7 +162,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-3xl font-extrabold text-brand-dark">סיכום הזמנה</h2>
           </div>
-          <div className="flex flex-col md:flex-row">
+          <div className="flex flex-col md:flex-row gap-8">
             <div className="w-full md:w-1/2 lg:w-2/3 md:pr-8">
               <h4 className="text-xl font-bold text-brand-dark mb-4">הפריטים שלך</h4>
               {selectedProducts.length > 0 ? (
@@ -190,9 +190,9 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
                 </div>
               </div>
             </div>
-            <div className="w-full md:w-1/2 lg:w-1/3 md:pl-8 mt-8 md:mt-0">
-              <h4 className="text-xl font-bold text-brand-dark mb-4">פרטי הזמנה</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="w-full bg-white p-6 rounded-lg shadow-md">
+              <h4 className="text-2xl font-bold text-brand-dark mb-4">פרטי הזמנה</h4>
+              <div className="grid grid-cols-1 gap-4">
                 <div> {/* Wrapper div for full name input and error */}
                   <input type="text" placeholder="שם מלא*" value={customerInfo.fullName}
                     onChange={(e) => {
@@ -254,11 +254,13 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
                   דרוש משלוח {deliveryFee > 0 && `(תוספת ${deliveryFee}₪)`}
                 </label>
               </div>
-              <button onClick={handleConfirmOrder}
-                disabled={isPending || !!fullNameError || !!phoneError || !!addressError || totalItems === 0}
-                className="w-full mt-4 px-4 py-3 rounded-lg bg-green-800 text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">
-                {isPending ? 'שולח הזמנה...' : 'אשר והמשך לתשלום'}
-              </button>
+              <div className="text-center mt-6">
+                <button onClick={handleConfirmOrder}
+                  disabled={isPending || !!fullNameError || !!phoneError || !!emailError || !!addressError || totalItems === 0}
+                  className="w-full mt-4 px-4 py-3 cursor-pointer rounded-lg bg-green-800 text-white font-bold uppercase tracking-wider transform transition-transform duration-200 hover:bg-brand-gold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold disabled:bg-gray-400 disabled:scale-100">
+                  {isPending ? 'שולח הזמנה...' : 'אשר והמשך לתשלום'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

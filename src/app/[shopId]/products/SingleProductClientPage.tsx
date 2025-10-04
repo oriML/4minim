@@ -43,12 +43,12 @@ export function SingleProductClientPage({ products }: SingleProductClientPagePro
   }, [products]);
 
   return (
-    <div className="container mx-auto py-8" dir="rtl">
+    <div className="container mx-auto p-8  rounded-2xl bg-gray-50" dir="rtl">
       <h1 className="text-3xl font-bold text-center text-olive mb-8">קנה מוצרים בודדים</h1>
 
       {products.length === 0 ? (
-        <div className="flex flex-col items-center">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
+        <div className="flex flex-col items-center rounded-2xl bg-gray-50">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
             {[...Array(8)].map((_, index) => (
               <ProductCardSkeleton key={index} />
             ))}
@@ -59,7 +59,7 @@ export function SingleProductClientPage({ products }: SingleProductClientPagePro
         Object.entries(groupedProducts).map(([category, productsInCategory]) => (
           <section key={category} className="mb-12">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-right">{category}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {productsInCategory.map((product) => (
                 <ProductCard
                   key={product.id}

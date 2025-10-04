@@ -34,7 +34,7 @@ export const Stepper: React.FC<PremiumStepperProps> = ({ steps, currentStep, onS
   }, [currentStep, onStepChange, steps.length]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4">
+    <div className="w-full max-w-4xl mx-auto p-4 rounded-2xl bg-gray-50">
       {/* --- Step Indicators --- */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-8 mb-12">
         {steps.map((step, index) => (
@@ -119,7 +119,7 @@ const NavButton = ({ children, ...props }: any) => (
   <motion.button
     whileHover={{ scale: 1.05 }}
     whileTap={{ scale: 0.95 }}
-    className="px-6 py-2 bg-green-700 text-white rounded-full font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+    className="px-6 cursor-pointer py-2 bg-green-700 text-white rounded-full font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
     {...props}
   >
     {children}

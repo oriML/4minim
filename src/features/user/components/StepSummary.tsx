@@ -105,7 +105,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
   return (
     <div className="max-w-4xl mx-auto">
       <h3 className="text-3xl font-extrabold text-center mb-8 text-brand-dark">סיכום הזמנה</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left side: Order Summary */}
         <div className="bg-brand-cream p-6 rounded-2xl border-2 border-brand-brown">
           {selectedProducts.length > 0 ? (
@@ -133,7 +133,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
         </div>
 
         {/* Right side: Customer Form */}
-        <div className="w-full">
+        <div className="w-full bg-white p-6 rounded-lg shadow-md">
           <h4 className="text-2xl font-bold text-brand-dark mb-4">פרטי הזמנה</h4>
           <div className="grid grid-cols-1 gap-4">
             <div> {/* Wrapper div for full name input and error */}
