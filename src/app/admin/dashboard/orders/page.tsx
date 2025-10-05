@@ -36,6 +36,7 @@ async function AdminOrdersPage() {
         ...item,
         name: productDetails?.productName_HE || 'Unknown Product',
         imageUrl: productDetails?.imageUrl || '',
+        price: productDetails?.price || 0,
       };
     });
 
