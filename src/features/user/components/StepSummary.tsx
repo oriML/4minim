@@ -58,11 +58,11 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
 
   useEffect(() => {
     const fetchFee = async () => {
-      const fee = await getDeliveryFeeAction();
+      const fee = await getDeliveryFeeAction(shopId);
       setDeliveryFee(fee);
     };
     fetchFee();
-  }, []);
+  }, [shopId]);
 
   const selectedProducts = useMemo(() => {
     return Object.values(set).filter(p => p !== null) as Product[];
@@ -95,7 +95,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
     }
 
     setIsSubmitting(true);
-    const redirectPath = await createCustomSetOrder(shopId, set, customerInfo, setId, currentTotalPrice);
+    const redirectPath = await createCustomSetOrder(shopId, set, customerInfo, setId, total);
     if (redirectPath) {
       router.push(redirectPath);
     }

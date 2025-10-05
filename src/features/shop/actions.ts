@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { googleSheetService } from '@/services/google-sheets';
 import { log } from 'console';
 
-export async function createOrderForShop(shopId: string, shopSlug: string, cart: Cart, customerInfo: CustomerInfo) {
+export async function createOrderForShop(shopId: string, shopSlug: string, cart: Cart, customerInfo: CustomerInfo, totalPrice: number) {
   let newOrderId;
   try {
     // 1. Find or create the customer
@@ -27,7 +27,6 @@ export async function createOrderForShop(shopId: string, shopSlug: string, cart:
 
     // 2. Calculate total price and prepare products JSON
     const products = await googleSheetService.getProductsByShop(shopId);
-    let totalPrice = 0;
     const productsInOrder: Record<string, { qty: number }> = {};
 
     for (const productId in cart) {
@@ -35,7 +34,6 @@ export async function createOrderForShop(shopId: string, shopSlug: string, cart:
       const product = products.find(p => p.id === productId);
 
       if (product) {
-        totalPrice += product.price * cartItem.qty;
         productsInOrder[productId] = { qty: cartItem.qty };
       } else {
         console.warn(`Product with ID ${productId} not found while creating order.`);

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Cart, Product, CustomerInfo } from '@/core/types';
 import { useState, useEffect, useRef, useMemo, useTransition } from 'react';
 import { ShoppingCart } from 'lucide-react';
+import { useShop } from '@/app/[shopId]/ShopContext';
 import { getDeliveryFeeAction } from '@/features/orders/actions';
 
 // Debounce utility function
@@ -18,10 +19,11 @@ function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
 interface CartSummaryProps {
   cart: Cart;
   products: Product[];
-  createOrderAction: (cart: Cart, customerInfo: CustomerInfo) => void;
+  createOrderAction: (cart: Cart, customerInfo: CustomerInfo, totalPrice: number) => void;
 }
 
 export function CartSummary({ cart, products, createOrderAction }: CartSummaryProps) {
+  const { shop } = useShop();
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     fullName: '',
     phone: '',
@@ -66,11 +68,13 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
 
   useEffect(() => {
     const fetchFee = async () => {
-      const fee = await getDeliveryFeeAction();
-      setDeliveryFee(fee);
+      if (shop) {
+        const fee = await getDeliveryFeeAction(shop.id);
+        setDeliveryFee(fee);
+      }
     };
     fetchFee();
-  }, []);
+  }, [shop]);
 
   const totalItems = Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
   
@@ -118,7 +122,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
     }
 
     startTransition(() => {
-      createOrderAction(cart, customerInfo);
+      createOrderAction(cart, customerInfo, totalPrice);
     });
   };
 

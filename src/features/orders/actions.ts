@@ -174,10 +174,15 @@ export const updateOrderPaymentStatus = async (
  * Server Action: Fetches the delivery fee from the current user's data.
  * @returns A promise that resolves to the delivery fee amount.
  */
-export const getDeliveryFeeAction = async (): Promise<number> => {
-  const admin = await getAdminUser();
-  if (!admin) {
+export const getDeliveryFeeAction = async (shopId: string): Promise<number> => {
+  const shop = await googleSheetService.getShopById(shopId);
+  if (!shop) {
     return 0;
   }
-  return admin.deliveryFee ?? 0;
+  const users = await googleSheetService.getUsers();
+  const owner = users.find(u => u.userId === shop.userId);
+  if (!owner) {
+    return 0;
+  }
+  return owner.deliveryFee ?? 0;
 };

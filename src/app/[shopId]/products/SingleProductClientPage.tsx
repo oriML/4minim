@@ -17,7 +17,7 @@ export function SingleProductClientPage({ products }: SingleProductClientPagePro
   const [cart, setCart] = useState<{ [productId: string]: { qty: number } }>({});
   const { shop } = useShop();
 
-  const createOrderAction = (cart: any, customerInfo: any) => createOrderForShop(shop.id, shop.slug, cart, customerInfo);
+  const createOrderAction = (cart: any, customerInfo: any, totalPrice: number) => createOrderForShop(shop.id, shop.slug, cart, customerInfo, totalPrice);
 
   const updateQty = (productId: string, qty: number) => {
     setCart((prev) => {
