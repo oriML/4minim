@@ -3,27 +3,41 @@
 import { Product } from '@/core/types';
 import React, { useState } from 'react';
 import { ImageViewer } from '@/components/ui/ImageViewer';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface ProductFormProps {
-  action: (formData: FormData) => void;
+  action: (formData: FormData) => Promise<any>; // Updated action prop type
   product?: Product;
-  productId?: string; // Add productId as an optional prop
+  productId?: string;
 }
 
 export const ProductForm: React.FC<ProductFormProps> = ({ action, product, productId }) => {
+  const router = useRouter();
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+
     if (selectedImageFile) {
       formData.append('image', selectedImageFile);
-    } else {
-      formData.set('imageUrl', '');
+    } else if (product?.imageUrl) {
+      formData.append('imageUrl', product.imageUrl);
     }
-    await action(formData);
+
+    const response = await action(formData);
+
+    if (response.success) {
+      toast.success(response.message);
+      router.push('/admin/dashboard/products');
+    } else {
+      toast.error(response.error);
+    }
   };
 
   return (
-    <form action={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto">
       {productId && <input type="hidden" name="productId" value={productId} />}
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">שם מוצר</label>

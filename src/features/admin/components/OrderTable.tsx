@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 interface OrderTableProps {
   orders: UIOrder[];
@@ -29,22 +30,22 @@ export function OrderTable({ orders }: OrderTableProps) {
   const [selectedOrder, setSelectedOrder] = React.useState<UIOrder | null>(null);
 
   const handleStatusUpdate = async (orderId: string, newStatus: UIOrder['status'], shopId: string) => {
-    const result = await updateOrderStatus(orderId, newStatus, shopId);
-    if (result.success) {
-      alert('סטטוס ההזמנה עודכן בהצלחה!');
+    const response = await updateOrderStatus(orderId, newStatus, shopId);
+    if (response.success) {
+      toast.success(response.message);
       setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
     } else {
-      alert(`עדכון סטטוס הזמנה נכשל: ${result.error}`);
+      toast.error(response.error);
     }
   };
 
   const handlePaymentStatusUpdate = async (orderId: string, newStatus: UIOrder['paymentStatus'], shopId: string) => {
-    const result = await updateOrderPaymentStatus(orderId, newStatus, shopId);
-    if (result.success) {
-      alert('סטטוס התשלום עודכן בהצלחה!');
+    const response = await updateOrderPaymentStatus(orderId, newStatus, shopId);
+    if (response.success) {
+      toast.success(response.message);
       setSelectedOrder(prev => prev ? { ...prev, paymentStatus: newStatus } : null);
     } else {
-      alert(`עדכון סטטוס תשלום נכשל: ${result.error}`);
+      toast.error(response.error);
     }
   };
 

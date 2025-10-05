@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useTransition, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ImageViewer } from '@/components/ui/ImageViewer';
+import { toast } from 'sonner';
 
 interface SetFormProps {
   set?: Set;
@@ -27,8 +28,12 @@ export const SetForm: React.FC<SetFormProps> = ({ set }) => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const products = await getAllProductsAction();
-      setAllProducts(products);
+      const response = await getAllProductsAction();
+      if (response.success) {
+        setAllProducts(response.data || []);
+      } else {
+        toast.error(response.error);
+      }
     };
     fetchProducts();
   }, []);
@@ -83,10 +88,13 @@ export const SetForm: React.FC<SetFormProps> = ({ set }) => {
     }
 
     startTransition(async () => {
-      if (set) {
-        await updateSetAction(formData);
+      const action = set ? updateSetAction : addSetAction;
+      const response = await action(formData);
+      if (response.success) {
+        toast.success(response.message);
+        router.push('/admin/dashboard/sets');
       } else {
-        await addSetAction(formData);
+        toast.error(response.error);
       }
     });
   };

@@ -59,3 +59,36 @@ export async function sendSellerNotificationEmail({
     console.error(`Failed to send seller notification email to ${sellerEmail}:`, error);
   }
 }
+
+export async function sendSystemErrorEmail({ error, context }: { error: any; context: string }) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      type: "OAuth2",
+      user: process.env.EMAIL_SERVER_USER,
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: '4minim.app@gmail.com',
+    subject: 'System Error Notification',
+    html: `
+      <h1>System Error</h1>
+      <p>An error occurred in the system.</p>
+      <p><strong>Context:</strong> ${context}</p>
+      <p><strong>Error:</strong></p>
+      <pre>${JSON.stringify(error, null, 2)}</pre>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('System error email sent.');
+  } catch (emailError) {
+    console.error('Failed to send system error email:', emailError);
+  }
+}

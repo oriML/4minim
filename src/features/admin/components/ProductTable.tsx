@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 interface ProductTableProps {
   products: Product[];
@@ -30,8 +31,13 @@ export const ProductTable: React.FC<ProductTableProps> = ({ products }) => {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this product?')) {
-      startTransition(() => {
-        deleteProductAction(id);
+      startTransition(async () => {
+        const response = await deleteProductAction(id);
+        if (response.success) {
+          toast.success(response.message);
+        } else {
+          toast.error(response.error);
+        }
       });
     }
   };

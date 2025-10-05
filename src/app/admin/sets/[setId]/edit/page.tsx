@@ -9,16 +9,20 @@ interface EditSetPageProps {
 }
 
 export default async function EditSetPage({ params }: EditSetPageProps) {
-  const set = await getSetAction(params.setId);
+  const response = await getSetAction(params.setId);
 
-  if (!set) {
+  if (!response.success) {
+    return <div>Error: {response.error}</div>;
+  }
+
+  if (!response.data) {
     notFound();
   }
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4 text-right">ערוך סט</h1>
-      <SetForm set={set} />
+      <SetForm set={response.data} />
     </div>
   );
 }

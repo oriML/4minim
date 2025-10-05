@@ -6,6 +6,7 @@ import { CustomSetBuilder } from './CustomSetBuilder';
 import { getProductsByCategory } from '@/features/products/actions';
 import { Product } from '@/core/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 export function SetBuilderWrapper({ shopId }: { shopId: string }) {
   const searchParams = useSearchParams();
@@ -16,31 +17,36 @@ export function SetBuilderWrapper({ shopId }: { shopId: string }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const productsByCategoryData = await getProductsByCategory(shopId);
-      setProductsByCategory(productsByCategoryData);
+      const response = await getProductsByCategory(shopId);
+      if (response.success) {
+        const productsByCategoryData = response.data || {};
+        setProductsByCategory(productsByCategoryData);
 
-      const allProducts: Product[] = Object.values(productsByCategoryData).flat();
+        const allProducts: Product[] = Object.values(productsByCategoryData).flat();
 
-      const storedProductsJson = localStorage.getItem('preselectedSetProducts');
+        const storedProductsJson = localStorage.getItem('preselectedSetProducts');
 
-      if (storedProductsJson) {
-        try {
-          const preselectedProductsMap: Record<string, { qty: number }> = JSON.parse(storedProductsJson);
+        if (storedProductsJson) {
+          try {
+            const preselectedProductsMap: Record<string, { qty: number }> = JSON.parse(storedProductsJson);
 
-          const preselected: Product[] = [];
+            const preselected: Product[] = [];
 
-          Object.keys(preselectedProductsMap).forEach(productId => {
-            const product = allProducts.find(p => p.id === productId);
-            if (product) {
-              preselected.push(product);
-            }
-          });
-          setPreselectedSetProducts(preselected);
-        } catch (e) {
-          console.error("Failed to parse preselectedSetProducts from localStorage", e);
-        } finally {
-          localStorage.removeItem('preselectedSetProducts');
+            Object.keys(preselectedProductsMap).forEach(productId => {
+              const product = allProducts.find(p => p.id === productId);
+              if (product) {
+                preselected.push(product);
+              }
+            });
+            setPreselectedSetProducts(preselected);
+          } catch (e) {
+            console.error("Failed to parse preselectedSetProducts from localStorage", e);
+          } finally {
+            localStorage.removeItem('preselectedSetProducts');
+          }
         }
+      } else {
+        toast.error(response.error);
       }
     };
     fetchData();

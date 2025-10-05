@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Product } from '@/core/types';
 import { ProductCard } from '@/features/shop/components/ProductCard';
 import { CartSummary } from '@/features/shop/components/CartSummary';
@@ -8,6 +8,8 @@ import { createOrderForShop } from '@/features/shop/actions';
 import { ProductCardSkeleton } from '@/features/shop/components/ProductCardSkeleton';
 import { CartSummarySkeleton } from '@/features/shop/components/CartSummarySkeleton';
 import { useShop } from '../ShopContext';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface SingleProductClientPageProps {
   products: Product[];
@@ -16,8 +18,19 @@ interface SingleProductClientPageProps {
 export function SingleProductClientPage({ products }: SingleProductClientPageProps) {
   const [cart, setCart] = useState<{ [productId: string]: { qty: number } }>({});
   const { shop } = useShop();
+  const router = useRouter();
 
-  const createOrderAction = (cart: any, customerInfo: any, totalPrice: number) => createOrderForShop(shop.id, shop.slug, cart, customerInfo, totalPrice);
+  const createOrderAction = async (cart: any, customerInfo: any, totalPrice: number) => {
+    const response = await createOrderForShop(shop.id, shop.slug, cart, customerInfo, totalPrice);
+    if (response.success) {
+      toast.success(response.message);
+      if (response.data?.orderId && response.data?.shopSlug) {
+        router.push(`/${response.data.shopSlug}/order-confirmation/${response.data.orderId}`);
+      }
+    } else {
+      toast.error(response.error);
+    }
+  };
 
   const updateQty = (productId: string, qty: number) => {
     setCart((prev) => {

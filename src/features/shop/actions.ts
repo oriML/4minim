@@ -1,12 +1,11 @@
 'use server';
 
 import { Cart, CustomerInfo, Order } from '@/core/types';
-import { redirect } from 'next/navigation';
+import { ApiResponse } from '@/core/types/responses';
 import { googleSheetService } from '@/services/google-sheets';
-import { log } from 'console';
+import { sendSystemErrorEmail } from '@/core/utils/email';
 
-export async function createOrderForShop(shopId: string, shopSlug: string, cart: Cart, customerInfo: CustomerInfo, totalPrice: number) {
-  let newOrderId;
+export async function createOrderForShop(shopId: string, shopSlug: string, cart: Cart, customerInfo: CustomerInfo, totalPrice: number): Promise<ApiResponse<{ redirectPath: string }>> {
   try {
     // 1. Find or create the customer
     let customers = await googleSheetService.getCustomersByShop(shopId);
@@ -25,7 +24,7 @@ export async function createOrderForShop(shopId: string, shopSlug: string, cart:
       customer = await googleSheetService.addCustomer(customerData, shopId);
     }
 
-    // 2. Calculate total price and prepare products JSON
+    // 2. Prepare products JSON
     const products = await googleSheetService.getProductsByShop(shopId);
     const productsInOrder: Record<string, { qty: number }> = {};
 
@@ -37,6 +36,8 @@ export async function createOrderForShop(shopId: string, shopSlug: string, cart:
         productsInOrder[productId] = { qty: cartItem.qty };
       } else {
         console.warn(`Product with ID ${productId} not found while creating order.`);
+        // Returning a validation error to the client
+        return { success: false, error: `Product with ID ${productId} not found.` };
       }
     }
 
@@ -54,16 +55,17 @@ export async function createOrderForShop(shopId: string, shopSlug: string, cart:
 
     // 4. Add the order using the generic addOrder function
     const newOrder = await googleSheetService.createOrderForShop(orderData, shopId);
-    newOrderId = newOrder.orderId;
+    const newOrderId = newOrder.orderId;
+
+    if (newOrderId) {
+      return { success: true, data: { orderId: newOrderId, shopSlug: shopSlug }, message: 'ההזמנה בוצעה בהצלחה!' };
+    }
+
+    return { success: false, error: 'Failed to create order.' };
 
   } catch (error) {
     console.error('Failed to create single product order:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to create single product order: ${error.message}`);
-    }
-    throw new Error('Failed to create single product order due to an unknown error.');
-  }
-  if (newOrderId) {
-    redirect(encodeURI(`/${shopSlug}/order-confirmation/${newOrderId}`));
+    await sendSystemErrorEmail({ error, context: 'createOrderForShop' });
+    return { success: false, error: 'שגיאת מערכת. אנא נסה שוב מאוחר יותר.' };
   }
 }

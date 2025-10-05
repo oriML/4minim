@@ -1,18 +1,18 @@
 'use server';
 
 import { Product } from "@/core/types";
+import { ApiResponse } from "@/core/types/responses";
 import { googleSheetService } from "@/services/google-sheets";
 import { productService } from "./service";
 import { getAdminUser, resolveShopForAdmin } from "@/core/utils/user-context";
-import { redirect } from "next/navigation";
+import { sendSystemErrorEmail } from "@/core/utils/email";
 
 export type ProductsByCategory = Record<string, Product[]>;
-
 
 async function getShopIdForAdmin() {
   const admin = await getAdminUser();
   if (!admin) {
-    redirect('/admin/login');
+    throw new Error('Admin user not found.');
   }
   const shop = await resolveShopForAdmin(admin.userId);
   if (!shop) {
@@ -21,26 +21,20 @@ async function getShopIdForAdmin() {
   return shop.id;
 }
 
-
-/**
- * Server Action: Fetches all products from Google Sheets.
- * @returns A promise that resolves to an array of all products.
- */
-export const getProductAction = async (id: string): Promise<Product | undefined> => {
+export const getProductAction = async (id: string): Promise<ApiResponse<Product | undefined>> => {
   try {
     const shopId = await getShopIdForAdmin();
     const products = await productService.getProductsByShop(shopId);
-    return products.find(product => product.id === id);
+    const product = products.find(product => product.id === id);
+    return { success: true, data: product };
   } catch (error) {
     console.error("getProductsAction: Failed to fetch products:", error);
+    await sendSystemErrorEmail({ error, context: 'getProductAction' });
+    return { success: false, error: 'שגיאת מערכת. אנא נסה שוב מאוחר יותר.' };
   }
 };
 
-/**
- * Server Action: Fetches all products from Google Sheets and groups them by category.
- * @returns A promise that resolves to a dictionary of products grouped by category.
- */
-export const getProductsByCategory = async (shopId: string): Promise<ProductsByCategory> => {
+export const getProductsByCategory = async (shopId: string): Promise<ApiResponse<ProductsByCategory>> => {
   try {
     const products = await productService.getProductsByShop(shopId);
 
@@ -54,24 +48,22 @@ export const getProductsByCategory = async (shopId: string): Promise<ProductsByC
       return acc;
     }, {});
 
-    return productsByCategory;
+    return { success: true, data: productsByCategory };
   } catch (error) {
     console.error("Failed to fetch or process products from Google Sheets:", error);
-    return {}; // Return an empty object in case of an error
+    await sendSystemErrorEmail({ error, context: 'getProductsByCategory' });
+    return { success: false, error: 'שגיאת מערכת. אנא נסה שוב מאוחר יותר.' };
   }
 };
 
-/**
- * Server Action: Fetches all products from Google Sheets, without user filtering.
- * @returns A promise that resolves to an array of all products.
- */
-export const getAllProductsAction = async (): Promise<Product[]> => {
+export const getAllProductsAction = async (): Promise<ApiResponse<Product[]>> => {
   try {
     const shopId = await getShopIdForAdmin();
     const products = await googleSheetService.getProductsByShop(shopId);
-    return products;
+    return { success: true, data: products };
   } catch (error) {
     console.error("Failed to fetch all products:", error);
-    return []; // Return an empty array in case of an error
+    await sendSystemErrorEmail({ error, context: 'getAllProductsAction' });
+    return { success: false, error: 'שגיאת מערכת. אנא נסה שוב מאוחר יותר.' };
   }
 };

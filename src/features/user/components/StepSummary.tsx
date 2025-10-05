@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { CustomSet } from './CustomSetBuilder';
 import { createCustomSetOrder } from '../actions';
 import { getDeliveryFeeAction } from '@/features/orders/actions';
@@ -15,7 +16,7 @@ interface StepSummaryProps {
 }
 
 export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTotalPrice, shopId }) => {
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     fullName: '',
     phone: '',
@@ -88,16 +89,17 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ set, setId, currentTot
       return; // Prevent submission if there are errors
     }
 
-    // If it's a pre-built set, we don't need to check selectedProducts.length
-    if (!setId && selectedProducts.length === 0) {
-      alert('לא נבחרו מוצרים.'); 
-      return;
-    }
-
     setIsSubmitting(true);
-    const redirectPath = await createCustomSetOrder(shopId, set, customerInfo, setId, total);
-    if (redirectPath) {
-      router.push(redirectPath);
+    const response = await createCustomSetOrder(shopId, set, customerInfo, setId, total);
+    setIsSubmitting(false);
+
+    if (response.success) {
+      toast.success(response.message);
+      if (response.data?.orderId && response.data?.shopSlug) {
+        router.push(`/${response.data.shopSlug}/order-confirmation/${response.data.orderId}`);
+      }
+    } else {
+      toast.error(response.error);
     }
   };
 

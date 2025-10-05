@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 interface SetTableProps {
   sets: Set[];
@@ -30,8 +31,13 @@ export const SetTable: React.FC<SetTableProps> = ({ sets }) => {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this set?')) {
-      startTransition(() => {
-        deleteSetAction(id);
+      startTransition(async () => {
+        const response = await deleteSetAction(id);
+        if (response.success) {
+          toast.success(response.message);
+        } else {
+          toast.error(response.error);
+        }
       });
     }
   };

@@ -70,7 +70,9 @@ const getProductsByShop = async (shopId: string): Promise<Product[]> => {
       imageUrl: row[7],
     }));
 
-    const filteredProducts = products.filter(product => product.shopId === shopId);
+    const uniqueProducts = Array.from(new Map(products.map(p => [p.id, p])).values());
+
+    const filteredProducts = uniqueProducts.filter(product => product.shopId === shopId);
     console.log(`getProductsByShop: Filtered products for shopId ${shopId}:`, filteredProducts);
     return filteredProducts;
   } catch (error) {
@@ -271,25 +273,67 @@ const addCustomer = async (customer: Omit<Customer, 'customerId'>, shopId: strin
 };
 
 const updateOrder = async (id: string, updates: Partial<Omit<Order, 'orderId' | 'shopId'>>, shopId: string): Promise<Order> => {
-  const orders = await getOrdersByShop(shopId);
-  const orderIndex = orders.findIndex(order => order.orderId === id);
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${ORDERS_SHEET_NAME}!A:K`, // Fetch all rows
+  });
 
-  if (orderIndex === -1) {
+  const values = response.data.values;
+  if (!values || values.length < 2) {
+    throw new Error(`No orders found in Google Sheet or sheet is empty.`);
+  }
+
+  let rowIndexToUpdate = -1;
+  let existingOrder: Order | null = null;
+
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    if (row && row[0] === id && row[1] === shopId) {
+      rowIndexToUpdate = i;
+      existingOrder = {
+        orderId: row[0],
+        shopId: row[1],
+        customerId: row[2],
+        productsJSON: row[3],
+        totalPrice: parseFloat(row[4]),
+        orderDate: row[5],
+        status: row[6] as 'בהמתנה' | 'בוצעה' | 'בוטלה',
+        notes: row[7] || '',
+        paymentStatus: (row[8] as 'שולם' | 'לא שולם') || 'לא שולם',
+        deliveryRequired: row[9] === 'TRUE',
+        originalSetId: row[10],
+      };
+      break;
+    }
+  }
+
+  if (rowIndexToUpdate === -1 || !existingOrder) {
     throw new Error(`Order with ID ${id} not found for shop ${shopId}`);
   }
 
-  const existingOrder = orders[orderIndex];
   const updatedOrder: Order = { ...existingOrder, ...updates, shopId: shopId };
+  const sheetRowNumber = rowIndexToUpdate + 1;
 
-  // Find the row number in the sheet (Google Sheets API is 1-indexed, and we skip header row)
-  const rowNumber = orderIndex + 2; // +1 for 1-indexing, +1 for skipping header
+  const valuesToUpdate = [
+    updatedOrder.orderId,
+    updatedOrder.shopId,
+    updatedOrder.customerId,
+    updatedOrder.productsJSON,
+    updatedOrder.totalPrice,
+    updatedOrder.orderDate,
+    updatedOrder.status,
+    updatedOrder.notes || '',
+    updatedOrder.paymentStatus,
+    updatedOrder.deliveryRequired ? 'TRUE' : 'FALSE',
+    updatedOrder.originalSetId || '',
+  ];
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${ORDERS_SHEET_NAME}!A${rowNumber}:K${rowNumber}`,
+    range: `${ORDERS_SHEET_NAME}!A${sheetRowNumber}:K${sheetRowNumber}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[updatedOrder.orderId, updatedOrder.shopId, updatedOrder.customerId, updatedOrder.productsJSON, updatedOrder.totalPrice, updatedOrder.orderDate, updatedOrder.status, updatedOrder.notes || '', updatedOrder.paymentStatus, updatedOrder.deliveryRequired ? 'TRUE' : 'FALSE', updatedOrder.originalSetId || '']],
+      values: [valuesToUpdate],
     },
   });
 
@@ -322,18 +366,41 @@ const updateProduct = async (id: string, updates: Partial<Omit<Product, 'id' | '
 };
 
 const deleteProduct = async (id: string, shopId: string): Promise<void> => {
-  const products = await getProductsByShop(shopId);
-  const productIndex = products.findIndex(product => product.id === id);
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${PRODUCTS_SHEET_NAME}!A:I`, // Fetch all rows, including potential empty ones
+  });
 
-  if (productIndex === -1) {
+  const values = response.data.values;
+  if (!values || values.length < 2) { // Less than 2 means only header or no data
+    throw new Error(`No products found in Google Sheet or sheet is empty.`);
+  }
+
+  // Find the actual row index (0-indexed) in the 'values' array
+  // We start searching from index 1 to skip the header row
+  let rowIndexToDelete = -1;
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    // Ensure row has enough columns to represent a product
+    if (row && row[0] === id && row[1] === shopId) { // Assuming id is in column A (index 0) and shopId in column B (index 1)
+      rowIndexToDelete = i;
+      break;
+    }
+  }
+
+  if (rowIndexToDelete === -1) {
     throw new Error(`Product with ID ${id} not found for shop ${shopId}`);
   }
 
-  const rowNumber = productIndex + 2; // +1 for 1-indexing, +1 for skipping header
+  // Google Sheets API is 1-indexed, and our 'values' array is 0-indexed,
+  // so the actual sheet row number is rowIndexToDelete + 1.
+  // We also need to account for the header row, which is already skipped by starting 'values' from A2.
+  // So, if rowIndexToDelete is 0 (first data row), it's sheet row 2.
+  const sheetRowNumber = rowIndexToDelete + 1;
 
   await sheets.spreadsheets.values.clear({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${PRODUCTS_SHEET_NAME}!A${rowNumber}:I${rowNumber}`,
+    range: `${PRODUCTS_SHEET_NAME}!A${sheetRowNumber}:I${sheetRowNumber}`,
   });
 };
 
@@ -379,18 +446,34 @@ const updateSet = async (id: string, updates: Partial<Omit<Set, 'id' | 'shopId'>
 };
 
 const deleteSet = async (id: string, shopId: string): Promise<void> => {
-  const sets = await getSetsByShop(shopId);
-  const setIndex = sets.findIndex(set => set.id === id);
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${SETS_SHEET_NAME}!A:H`, // Fetch all rows, including potential empty ones
+  });
 
-  if (setIndex === -1) {
+  const values = response.data.values;
+  if (!values || values.length < 2) { // Less than 2 means only header or no data
+    throw new Error(`No sets found in Google Sheet or sheet is empty.`);
+  }
+
+  let rowIndexToDelete = -1;
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    if (row && row[0] === id && row[1] === shopId) { // Assuming id is in column A (index 0) and shopId in column B (index 1)
+      rowIndexToDelete = i;
+      break;
+    }
+  }
+
+  if (rowIndexToDelete === -1) {
     throw new Error(`Set with ID ${id} not found for shop ${shopId}`);
   }
 
-  const rowNumber = setIndex + 2; // +1 for 1-indexing, +1 for skipping header
+  const sheetRowNumber = rowIndexToDelete + 1;
 
   await sheets.spreadsheets.values.clear({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${SETS_SHEET_NAME}!A${rowNumber}:H${rowNumber}`,
+    range: `${SETS_SHEET_NAME}!A${sheetRowNumber}:H${sheetRowNumber}`,
   });
 };
 

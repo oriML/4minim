@@ -1,8 +1,9 @@
 'use server';
 
-import type { Order, CustomerInfo, Product, User } from '@/core/types';
-import { redirect } from 'next/navigation';
+import type { Order, CustomerInfo, Product } from '@/core/types';
+import { ApiResponse } from '@/core/types/responses';
 import { googleSheetService } from '@/services/google-sheets';
+import { sendSystemErrorEmail } from '@/core/utils/email';
 
 // Define the shape of the custom set object
 interface CustomSet {
@@ -12,8 +13,7 @@ interface CustomSet {
   arava: Product | null;
 }
 
-export async function createCustomSetOrder(shopId: string, set: CustomSet, customerInfo: CustomerInfo, setId: string | null | undefined, totalPriceArg: number) {
-  let newOrderId;
+export async function createCustomSetOrder(shopId: string, set: CustomSet, customerInfo: CustomerInfo, setId: string | null | undefined, totalPriceArg: number): Promise<ApiResponse<{ redirectPath: string }>> {
   try {
     // 1. Find or create the customer
     let customers = await googleSheetService.getCustomersByShop(shopId);
@@ -35,6 +35,10 @@ export async function createCustomSetOrder(shopId: string, set: CustomSet, custo
     // 2. Prepare products JSON from the CustomSet
     const selectedProducts = Object.values(set).filter(p => p !== null) as Product[];
 
+    if (selectedProducts.length === 0) {
+      return { success: false, error: 'לא נבחרו מוצרים.' };
+    }
+
     const productsInOrder: Record<string, { qty: number }> = {};
     selectedProducts.forEach(product => {
       productsInOrder[product.id] = { qty: 1 }; // Each item in a set has a quantity of 1
@@ -55,21 +59,21 @@ export async function createCustomSetOrder(shopId: string, set: CustomSet, custo
 
     // 4. Add the order using the generic addOrder function
     const newOrder = await googleSheetService.createOrderForShop(orderData, shopId);
-    newOrderId = newOrder.orderId;
+    const newOrderId = newOrder.orderId;
+
+    if (newOrderId) {
+      const shop = await googleSheetService.getShopById(shopId);
+      if (!shop) {
+        throw new Error('Shop not found for redirection.');
+      }
+      return { success: true, data: { orderId: newOrderId, shopSlug: shop.slug }, message: 'ההזמנה בוצעה בהצלחה!' };
+    }
+
+    return { success: false, error: 'Failed to create order.' };
 
   } catch (error) {
     console.error('Failed to create custom set order:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to create custom set order: ${error.message}`);
-    }
-    throw new Error('Failed to create custom set order due to an unknown error.');
-  }
-  console.log('createCustomSetOrder: New Order ID:', newOrderId);
-  if (newOrderId) {
-    const shop = await googleSheetService.getShopById(shopId);
-    if (!shop) {
-      throw new Error('Shop not found for redirection.');
-    }
-    return`/${shop.slug}/order-confirmation/${newOrderId}`;
+    await sendSystemErrorEmail({ error, context: 'createCustomSetOrder' });
+    return { success: false, error: 'שגיאת מערכת. אנא נסה שוב מאוחר יותר.' };
   }
 }
