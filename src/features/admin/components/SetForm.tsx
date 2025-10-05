@@ -145,10 +145,10 @@ export const SetForm: React.FC<SetFormProps> = ({ set }) => {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {products.map((product) => (
                   <div key={product.id} 
-                       className="relative rounded-lg border border-gray-300 bg-cover bg-center shadow-sm h-40 p-4 flex flex-col justify-between"
-                       style={product.imageUrl ? {backgroundImage: `url(${product.imageUrl})`} : {backgroundColor: '#f0f0f0'}}>
-                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg"></div>
-                    <div className="relative z-10 flex items-start">
+                       className="relative rounded-lg border border-gray-300 shadow-sm h-40 overflow-hidden">
+                    <img src={product.imageUrl} alt={product.productName_HE} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
+                    <div className="absolute top-0 right-0 p-2 z-10 flex items-start">
                       <div className="flex h-5 items-center">
                         <input
                           id={`product-${product.id}`}
@@ -163,14 +163,14 @@ export const SetForm: React.FC<SetFormProps> = ({ set }) => {
                       </div>
                     </div>
                     {productsJson[product.id] && (
-                      <div className="relative z-10 mt-2 self-end">
+                      <div className="absolute bottom-0 right-0 p-2 z-10">
                         <label htmlFor={`qty-${product.id}`} className="text-xs text-white">כמות</label>
                         <input
                           type="number"
                           id={`qty-${product.id}`}
                           value={productsJson[product.id].qty}
                           onChange={(e) => handleQuantityChange(product.id, parseInt(e.target.value))}
-                          className="mt-1 block w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="mt-1 block w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white/80"
                           min="1"
                         />
                       </div>

@@ -30,7 +30,7 @@ const getShops = async (): Promise<Shop[]> => {
     imageUrl: row[5],
     iconUrl: row[6],
     active: row[7] === 'TRUE',
-  }));
+  })).filter(shop => shop.active);
 };
 
 const getShopById = async (id: string): Promise<Shop | null> => {
@@ -96,9 +96,9 @@ const getUsers = async (): Promise<User[]> => {
     email: row[2],
     passwordHash: row[3],
     role: row[4] as 'admin' | 'user',
-    status: row[5],
+    active: row[5] === 'active',
     deliveryFee: row[6] ? parseFloat(row[6]) : 0,
-  }));
+  })).filter(user => user.active);
 };
 
 const getUserByEmail = async (email: string): Promise<User | null> => {
