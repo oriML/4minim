@@ -192,8 +192,8 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
             </div>
             <div className="w-full bg-white p-6 rounded-lg shadow-md">
               <h4 className="text-2xl font-bold text-brand-dark mb-4">פרטי הזמנה</h4>
-              <div className="grid grid-cols-1 gap-4">
-                <div> {/* Wrapper div for full name input and error */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2"> {/* Wrapper div for full name input and error */}
                   <input type="text" placeholder="שם מלא*" value={customerInfo.fullName}
                     onChange={(e) => {
                       setCustomerInfo({ ...customerInfo, fullName: e.target.value });
@@ -203,6 +203,16 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
                     required
                   />
                   {fullNameError && <p className="text-red-500 text-sm mt-1 text-right">{fullNameError}</p>}
+                </div>
+                <div className="sm:col-span-2"> {/* Wrapper div for email input and error */}
+                  <input type="email" placeholder="אימייל (לקבלת עדכונים)" value={customerInfo.email}
+                    onChange={(e) => {
+                      setCustomerInfo({ ...customerInfo, email: e.target.value });
+                      setEmailError(validateEmail(e.target.value));
+                    }}
+                    className={`w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition text-right ${emailError ? 'border-red-500' : 'border-brand-brown'}`}
+                  />
+                  {emailError && <p className="text-red-500 text-sm mt-1 text-right">{emailError}</p>}
                 </div>
                 <div> {/* Wrapper div for phone input and error */}
                   <input type="tel" placeholder="טלפון*" value={customerInfo.phone}
@@ -215,17 +225,7 @@ export function CartSummary({ cart, products, createOrderAction }: CartSummaryPr
                   />
                   {phoneError && <p className="text-red-500 text-sm mt-1 text-right">{phoneError}</p>}
                 </div>
-                <div> {/* Wrapper div for email input and error */}
-                  <input type="email" placeholder="אימייל (לקבלת עדכונים)" value={customerInfo.email}
-                    onChange={(e) => {
-                      setCustomerInfo({ ...customerInfo, email: e.target.value });
-                      setEmailError(validateEmail(e.target.value));
-                    }}
-                    className={`w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none transition text-right ${emailError ? 'border-red-500' : 'border-brand-brown'}`}
-                  />
-                  {emailError && <p className="text-red-500 text-sm mt-1 text-right">{emailError}</p>}
-                </div>
-                <div className="sm:col-span-2"> {/* Wrapper div for address input and error */}
+                <div> {/* Wrapper div for address input and error */}
                   <input type="text" placeholder="כתובת למשלוח" value={customerInfo.address}
                     onChange={(e) => {
                       setCustomerInfo({ ...customerInfo, address: e.target.value });
